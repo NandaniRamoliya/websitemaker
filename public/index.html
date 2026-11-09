@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SiteForge – AI Website Maker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+  <aside class="panel">
+    <div class="brandbar">
+      <div class="mark">◆</div>
+      <div><strong>SiteForge</strong><small>Brand details in → website out</small></div>
+      <div class="bar-actions">
+        <button class="ghost sm" id="btnSample" title="Load an example brand">Sample</button>
+        <button class="ghost sm" id="btnReset" title="Clear everything">Reset</button>
+      </div>
+    </div>
+
+    <div class="panel-scroll">
+      <!-- Smart import -->
+      <section class="smart">
+        <h3>⚡ Auto-fill from the internet</h3>
+        <label class="lbl">Paste any link: existing website, Google Maps place, listing page</label>
+        <div class="row">
+          <input id="importUrl" placeholder="https://… or maps.app.goo.gl/…">
+          <button id="btnImport">Import</button>
+        </div>
+        <details class="ai-research" id="aiBox">
+          <summary>🔎 AI research: find everything about the brand online</summary>
+          <div class="grid2">
+            <input id="rName" placeholder="Brand / business name">
+            <input id="rLoc" placeholder="City / location">
+          </div>
+          <textarea id="rHints" rows="2" placeholder="Hints (optional): e.g. 'family-run Italian restaurant, known for wood-fired pizza'"></textarea>
+          <div class="row">
+            <button id="btnResearch" class="grow">Research & fill the form</button>
+            <button id="btnCopy" class="ghost" title="Write missing taglines, about text, FAQ, SEO">✍ Write copy</button>
+          </div>
+          <div class="ai-note" id="aiNote"></div>
+        </details>
+        <div class="log" id="log" hidden></div>
+      </section>
+
+      <div id="form"></div>
+    </div>
+  </aside>
+
+  <main class="stage">
+    <div class="toolbar">
+      <div class="seg" id="engine">
+        <button data-v="template" class="on">Template</button>
+        <button data-v="ai">AI Designer</button>
+      </div>
+      <select id="themeQuick" title="Theme"></select>
+      <div class="seg" id="device">
+        <button data-v="100%" class="on" title="Desktop">🖥</button>
+        <button data-v="820px" title="Tablet">▭</button>
+        <button data-v="390px" title="Mobile">📱</button>
+      </div>
+      <div class="spacer"></div>
+      <button class="ghost sm" id="btnExport" title="Save project as JSON">Save project</button>
+      <label class="ghost sm filebtn" title="Load a saved project">Load<input type="file" id="fileProject" accept=".json" hidden></label>
+      <button class="ghost sm" id="btnOpen">Open ↗</button>
+      <button id="btnDownload">⬇ Download website</button>
+    </div>
+
+    <div class="ai-bar" id="aiBar" hidden>
+      <input id="aiStyle" placeholder="Design direction (optional): e.g. 'luxury, dark & gold, editorial typography, lots of whitespace'">
+      <button id="btnDesign">✨ Generate with AI</button>
+      <span class="ai-status" id="aiStatus"></span>
+    </div>
+
+    <div class="canvas"><div class="frame-wrap" id="frameWrap"><iframe id="preview" title="Website preview"></iframe></div></div>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+<script src="generator.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
