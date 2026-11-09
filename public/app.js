@@ -432,7 +432,7 @@
     $("#aiBar").hidden = engine !== "ai";
     $("#themeQuick").hidden = engine === "ai";
     if (engine === "ai" && aiHtml) $("#preview").srcdoc = aiHtml; else renderPreview();
-    if (engine === "ai" && !aiAvailable) $("#aiStatus").textContent = "Set ANTHROPIC_API_KEY on the server to enable.";
+    if (engine === "ai" && !aiAvailable) $("#aiStatus").textContent = "Start the server with GEMINI_API_KEY (free) to enable.";
   };
   $("#device").onclick = (e) => {
     const b = e.target.closest("button"); if (!b) return;
@@ -485,8 +485,9 @@
   // ---------------- boot ----------------
   fetch("/api/status").then((r) => r.json()).then((s) => {
     aiAvailable = s.ai;
-    ["#btnResearch", "#btnCopy", "#btnDesign"].forEach((id) => { const b = $(id); b.dataset.ai = "1"; b.disabled = !aiAvailable; if (!aiAvailable) b.title = "Set ANTHROPIC_API_KEY on the server to enable AI"; });
-    $("#aiNote").textContent = aiAvailable ? "Uses Claude with live web search to find details, photos, reviews and hours." : "AI is off: start the server with ANTHROPIC_API_KEY to enable research, copywriting and AI design. Import & templates work without it.";
+    const who = s.provider === "gemini" ? "Google Gemini (free tier) with Google Search" : "Claude with live web search";
+    ["#btnResearch", "#btnCopy", "#btnDesign"].forEach((id) => { const b = $(id); b.dataset.ai = "1"; b.disabled = !aiAvailable; if (!aiAvailable) b.title = "Start the server with GEMINI_API_KEY (free) to enable AI"; });
+    $("#aiNote").textContent = aiAvailable ? `Uses ${who} to find details, photos, reviews and hours.` : "AI is off: get a FREE key at aistudio.google.com/apikey and start the server with GEMINI_API_KEY=your-key. Import & templates work without it.";
   }).catch(() => {});
   renderForm();
   renderPreview();

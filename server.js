@@ -1,22 +1,16 @@
 import express from "express";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import Anthropic from "@anthropic-ai/sdk";
 import { scrapeUrl } from "./lib/scrape.js";
 import { resolveMap } from "./lib/maps.js";
-import { aiAvailable, researchBrand, writeCopy, designSite } from "./lib/ai.js";
+import { aiProvider, researchBrand, writeCopy, designSite, friendlyError } from "./lib/ai.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 app.use(express.json({ limit: "60mb" }));
 app.use(express.static(path.join(here, "public")));
 
-const errMsg = (e) => {
-  if (e instanceof Anthropic.AuthenticationError) return "Invalid or missing Anthropic API key.";
-  if (e instanceof Anthropic.RateLimitError) return "Rate limited by the AI API – try again in a minute.";
-  if (e instanceof Anthropic.APIError) return `AI API error ${e.status}: ${e.message}`;
-  return e?.message || String(e);
-};
+const errMsg = (e) => friendlyError(e);
 
 function sse(res) {
   res.writeHead(200, { "content-type": "text/event-stream", "cache-control": "no-cache", connection: "keep-alive" });
@@ -25,7 +19,7 @@ function sse(res) {
   return (event, data) => res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
 }
 
-app.get("/api/status", (_req, res) => res.json({ ai: aiAvailable() }));
+app.get("/api/status", (_req, res) => res.json({ ai: Boolean(aiProvider()), provider: aiProvider() }));
 
 app.post("/api/import-url", async (req, res) => {
   try { res.json(await scrapeUrl(String(req.body.url || "").trim())); }
@@ -63,5 +57,6 @@ app.post("/api/ai/design", async (req, res) => {
 const port = Number(process.env.PORT) || 3000;
 app.listen(port, () => {
   console.log(`SiteForge running → http://localhost:${port}`);
-  if (!aiAvailable()) console.log("(AI features disabled – set ANTHROPIC_API_KEY to enable research & AI design)");
+  const p = aiProvider();
+  console.log(p ? `AI provider: ${p}` : "AI is off – get a FREE key at https://aistudio.google.com/apikey and start with GEMINI_API_KEY=your-key");
 });
