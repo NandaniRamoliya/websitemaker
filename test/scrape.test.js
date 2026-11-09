@@ -25,3 +25,16 @@ test("parses Google Maps links", () => {
   assert.match(buildEmbedUrl(parseMapUrl("12.97, 77.59")), /q=12\.97%2C77\.59/);
   assert.equal(parseMapUrl('<iframe src="https://www.google.com/maps/embed?pb=xyz"></iframe>').embedUrl, "https://www.google.com/maps/embed?pb=xyz");
 });
+
+test("normalizes AI output to the form's shape", async () => {
+  const { normalizeBrandData } = await import("../lib/normalize.js");
+  const d = normalizeBrandData({
+    faq: [{ question: "Q1?", answer: "A1" }], seo: { keywords: ["a", "b"] },
+    contact: { hours: ["Mon: 9-5", "Tue: 9-5"] }, reviews: [{ author: "X", review: "Great" }], media: { gallery: "https://x/y.jpg" },
+  });
+  assert.deepEqual(d.faq, [{ q: "Q1?", a: "A1" }]);
+  assert.equal(d.seo.keywords, "a, b");
+  assert.equal(d.contact.hours, "Mon: 9-5\nTue: 9-5");
+  assert.equal(d.testimonials[0].text, "Great");
+  assert.deepEqual(d.media.gallery, ["https://x/y.jpg"]);
+});

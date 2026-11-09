@@ -376,7 +376,7 @@
     const known = tokenizeImages(state).data;
     try {
       await sse("/api/ai/research", { name, location: $("#rLoc").value, hints: $("#rHints").value, url: $("#importUrl").value.trim(), known }, {
-        progress: (ev) => ev.detail && log(`${ev.name === "web_search" ? "🔎" : "🌐"} ${ev.detail}`),
+        progress: (ev) => ev.detail && log(`${ev.name === "web_search" ? "🔎" : ev.name === "note" ? "ℹ" : "🌐"} ${ev.detail}`),
         done: async (data) => {
           (data.sources || []).slice(0, 8).forEach((s) => log("source: " + s));
           await applyImport(data);
@@ -485,7 +485,7 @@
   // ---------------- boot ----------------
   fetch("/api/status").then((r) => r.json()).then((s) => {
     aiAvailable = s.ai;
-    const who = s.provider === "gemini" ? "Google Gemini (free tier) with Google Search" : "Claude with live web search";
+    const who = s.provider === "gemini" ? "Google Gemini (free tier) – it reads web pages and uses Google Search when your key allows it –" : "Claude with live web search";
     ["#btnResearch", "#btnCopy", "#btnDesign"].forEach((id) => { const b = $(id); b.dataset.ai = "1"; b.disabled = !aiAvailable; if (!aiAvailable) b.title = "Start the server with GEMINI_API_KEY (free) to enable AI"; });
     $("#aiNote").textContent = aiAvailable ? `Uses ${who} to find details, photos, reviews and hours.` : "AI is off: get a FREE key at aistudio.google.com/apikey and start the server with GEMINI_API_KEY=your-key. Import & templates work without it.";
   }).catch(() => {});

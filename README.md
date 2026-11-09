@@ -24,6 +24,8 @@ Without any key, everything works except the three AI buttons.
 | Anthropic Claude | Paid, pay as you go | `ANTHROPIC_API_KEY` |
 
 If both keys are set, Gemini is used; set `AI_PROVIDER=anthropic` to force Claude.
+**Free-key note:** Google Search grounding is usually *not* included in Gemini's free tier. AI research then automatically falls back to reading web pages + the model's own knowledge (the log tells you), and skips reviews so nothing invented gets published. Double-check phone numbers, hours and addresses. For exact details, also paste the business's website or Maps link into **Import**.
+
 If you hit the free limit you'll see a "limit reached" message: wait a minute, or until the next day for the daily limit.
 
 ## Inputs
@@ -54,7 +56,7 @@ If you hit the free limit you'll see a "limit reached" message: wait a minute, o
 
 ## Config
 
-`PORT` (default 3000), `GEMINI_MODEL` (comma-separated list tried in order, default `gemini-3.8-flash,gemini-flash-latest,gemini-2.5-flash`), `CLAUDE_MODEL` (default `claude-opus-5-5`), `AI_PROVIDER`.
+`PORT` (default 3000), `GEMINI_MODEL` (comma-separated list tried in order, default `gemini-3.6-flash,gemini-3.5-flash,gemini-3.8-flash,gemini-3.7-flash,gemini-3.1-flash-lite`), `CLAUDE_MODEL` (default `claude-opus-5-5`), `AI_PROVIDER`.
 Behind a corporate proxy, run with `NODE_USE_ENV_PROXY=1` so the importer's `fetch` uses `HTTPS_PROXY`.
 
 ## Structure
@@ -68,6 +70,7 @@ lib/ai.js            picks the AI provider
 lib/gemini.js        Google Gemini (free tier) research, copywriting and design
 lib/anthropic.js     Anthropic Claude (paid) research, copywriting and design
 lib/prompts.js       prompts shared by both providers
+lib/normalize.js     cleans AI output into the form's exact shape
 public/generator.js  template engine (brand JSON -> website HTML)
 public/app.js        builder UI
 ```
