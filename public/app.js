@@ -419,7 +419,7 @@
           status.textContent = `Writing… ${(html.length / 1024).toFixed(0)} KB`;
           if (Date.now() - last > 2000) { last = Date.now(); SF.setPreview($("#preview"), SF.partialHtml(restore(html))); }
         },
-        done: () => { aiHtml = restore(html); SF.setPreview($("#preview"), aiHtml, false); status.textContent = "✓ Done – edit inputs & regenerate anytime"; },
+        done: (e) => { aiHtml = restore(e?.html || html); SF.setPreview($("#preview"), aiHtml, false); status.textContent = "✓ Done – edit inputs & regenerate anytime"; },
         error: (e) => { throw new Error(e.error); },
       });
     } catch (e) { status.textContent = "✗ " + e.message; toast(e.message, true); }
@@ -449,8 +449,12 @@
     const a = el("a", { href: URL.createObjectURL(new Blob([content], { type })), download: name });
     document.body.append(a); a.click(); a.remove();
   };
-  $("#btnDownload").onclick = () => { download(`${slug()}.html`, currentHtml(), "text/html"); toast("Downloaded – upload this single file to any host (Netlify, Vercel, GitHub Pages, cPanel…)"); };
-  $("#btnOpen").onclick = () => { const w = window.open(); w.document.write(currentHtml()); w.document.close(); };
+  // Every exported page goes through the site doctor (links, menus, forms, scrolling).
+  async function finalHtml() {
+    try { return (await SF.api("/api/heal", { html: currentHtml(), data: state })).html; } catch { return currentHtml(); }
+  }
+  $("#btnDownload").onclick = async () => { SF.download(`${slug()}.html`, await finalHtml(), "text/html"); toast("Downloaded – upload this single file to any host (Netlify, Vercel, GitHub Pages, cPanel…)"); };
+  $("#btnOpen").onclick = async () => { const w = window.open(); const h = await finalHtml(); w.document.write(h); w.document.close(); };
   $("#btnExport").onclick = () => download(`${slug()}.siteforge.json`, JSON.stringify(state, null, 2), "application/json");
   $("#fileProject").onchange = async (e) => {
     try { state = { ...blank(), ...JSON.parse(await e.target.files[0].text()) }; save(); renderForm(); renderPreview(); toast("Project loaded"); }

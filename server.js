@@ -4,7 +4,8 @@ import { fileURLToPath } from "node:url";
 import { scrapeUrl } from "./lib/scrape.js";
 import { resolveMap } from "./lib/maps.js";
 import { aiProvider, researchBrand, writeCopy, designSite, friendlyError } from "./lib/ai.js";
-import { autoBuild, listSites, rememberLeads, SITES_DIR } from "./lib/autobuild.js";
+import { autoBuild, listSites, rememberLeads, polishHtml, cleanHtml, SITES_DIR } from "./lib/autobuild.js";
+import { heal } from "./lib/siteDoctor.js";
 import { fetchSheet, parseCsv, leadsFromRows } from "./lib/leads.js";
 import { placesEnabled } from "./lib/places.js";
 
@@ -44,6 +45,8 @@ app.post("/api/leads/load", async (req, res) => {
   } catch (e) { res.status(400).json({ error: errMsg(e) }); }
 });
 
+app.post("/api/heal", (req, res) => res.json({ html: heal(String(req.body.html || ""), req.body.data || {}) }));
+
 app.get("/api/sites", async (_req, res) => res.json(await listSites()));
 
 app.post("/api/import-url", async (req, res) => {
@@ -73,8 +76,9 @@ app.post("/api/ai/copy", async (req, res) => {
 app.post("/api/ai/design", async (req, res) => {
   const send = sse(res);
   try {
-    await designSite(req.body.data, req.body.style, (t) => (t === null ? send("reset", {}) : send("text", t)));
-    send("done", {});
+    let out = "";
+    await designSite(req.body.data, req.body.style, (t) => { if (t === null) { out = ""; send("reset", {}); } else { out += t; send("text", t); } });
+    send("done", { html: polishHtml(cleanHtml(out), req.body.data || {}).html });
   } catch (e) { send("error", { error: errMsg(e) }); }
   res.end();
 });

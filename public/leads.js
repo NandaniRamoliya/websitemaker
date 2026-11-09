@@ -36,7 +36,7 @@
       const s = siteFor(l);
       const st = status[l.id];
       const stHtml = st ? `<span class="st ${st.state}">${esc(st.msg)}</span>`
-        : s ? `<span class="st ok">✓ ${s[1].engine === "ai" ? "AI design" : "Template"}</span>` : `<span class="sub">Not built</span>`;
+        : s ? `<span class="st ok">✓ ${s[1].engine === "ai" ? "AI design" : "Template"}</span>${s[1].warnings?.length ? ` <span class="st warn" title="Please check before showing:\n• ${esc(s[1].warnings.join("\n• "))}">⚠ ${s[1].warnings.length} to check</span>` : ""}` : `<span class="sub">Not built</span>`;
       return `<tr data-id="${l.id}" class="${$("#preview").dataset.lead == l.id ? "cur" : ""}">
         <td><input type="checkbox" data-sel="${l.id}" ${selected.has(l.id) ? "checked" : ""}></td>
         <td><div class="nm">${esc(l.name)}</div><div class="sub"><span class="chip">${CAT_LABEL[l.category] || l.category}</span>${esc(l.locality || "")}${l.hasWebsite ? ` · <a href="${esc(l.website)}" target="_blank">has site</a>` : ""}</div></td>

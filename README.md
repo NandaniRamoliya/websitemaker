@@ -12,7 +12,18 @@ Turn a Google Maps link, or a whole sheet of leads, into complete, unique, AI-de
    - AI-written copy: headline, about, services, why-choose-us, FAQ, SEO. It never invents prices, reviews or years.
    - a **unique AI design**: each business type has several visual directions and hero layouts, picked per business, so neighbouring leads look different. **↻ New design** gives the same lead a fresh look.
    - free stock photos matched to the business type (jewellery, spa, clinic, dental, restaurant, salon, makeup, nails, banquet)
-   - automatic quality fixes: no sideways scrolling on phones, and a WhatsApp button and map are added if the design missed them
+   - conversion features: business name and Google rating in the hero, a "Book this →" WhatsApp link on every service (with a ready-made message), and a sticky **Call · WhatsApp · Directions** bar on phones
+   - the **site doctor** (`lib/siteDoctor.js`), applied to every page you build, download or open:
+     - WhatsApp, Maps and social links open in a new tab and never replace the website
+     - empty `#` links go to the top, and links to a missing section go to the closest match
+     - section headings stay below the sticky header
+     - the phone menu closes after you tap a link
+     - forms send the enquiry to the owner's WhatsApp
+     - small links get comfortable tap areas on phones
+     - broken images are hidden
+     - scroll animations can't leave content invisible
+   - a WhatsApp button and map are added if the design missed them
+   - **claims check**: the build log and the Leads page flag anything the owner might not be able to back up, such as certifications, "100%", "best in…", years of experience or customer counts. The AI is instructed not to write these, and the check catches anything that slips through.
 5. Sites are saved to `sites/<name>/index.html` and served at `/sites/<name>/`. Use **View**, **Edit** (opens the editor), **Download**, or **Export CSV** to get every lead with its demo link.
 
 On the main page you can also paste a single **Google Maps link** and click **⚡ Build website**. If that business is in your loaded sheet, its phone, address and rating are used automatically.
@@ -70,6 +81,14 @@ If you hit the free limit you'll see a "limit reached" message: wait a minute, o
 - **AI Designer**: the AI streams a one-off custom design from the same data, with an optional style direction.
 - **Download website**: a single self-contained `.html` file you can upload to Netlify, Vercel, GitHub Pages, cPanel or any other host.
 - **Save/Load project**: saves and loads all your inputs as JSON. Work also autosaves in the browser.
+
+## Quality checks
+
+```bash
+npm i -D playwright && npx playwright install chromium   # one time
+npm run qa -- http://localhost:3000/sites/<name>/          # clicks every link, menu, FAQ, form on desktop + phone
+npm run heal                                              # re-apply the site doctor to all saved demos
+```
 
 ## Config
 
