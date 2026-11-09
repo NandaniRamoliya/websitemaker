@@ -13,21 +13,32 @@
   <aside class="panel">
     <div class="brandbar">
       <div class="mark">◆</div>
-      <div><strong>SiteForge</strong><small>Brand details in → website out</small></div>
+      <div><strong>SiteForge</strong><small>Maps link in → website out</small></div>
       <div class="bar-actions">
+        <a class="sm" href="/leads.html" style="text-decoration:none;background:var(--pri);color:#fff;border-radius:8px;padding:7px 12px;font-weight:600">📋 Leads</a>
         <button class="ghost sm" id="btnSample" title="Load an example brand">Sample</button>
         <button class="ghost sm" id="btnReset" title="Clear everything">Reset</button>
       </div>
     </div>
 
     <div class="panel-scroll">
+      <!-- One-click: Maps link → website -->
+      <section class="smart magic">
+        <h3>🗺 Google Maps link → complete website</h3>
+        <div class="row">
+          <input id="magicUrl" placeholder="Paste a Google Maps place link">
+          <button id="btnMagic">⚡ Build website</button>
+        </div>
+        <div class="hint">Builds everything automatically: content, design, map, WhatsApp. For phone, address & rating use the <a href="/leads.html">Leads page</a> with your sheet.</div>
+      </section>
+
       <!-- Smart import -->
       <section class="smart">
-        <h3>⚡ Auto-fill from the internet</h3>
-        <label class="lbl">Paste any link: existing website, Google Maps place, listing page</label>
+        <h3>Other ways to fill the form</h3>
+        <label class="lbl">Import from an existing website</label>
         <div class="row">
-          <input id="importUrl" placeholder="https://… or maps.app.goo.gl/…">
-          <button id="btnImport">Import</button>
+          <input id="importUrl" placeholder="https://…">
+          <button id="btnImport" class="ghost">Import</button>
         </div>
         <details class="ai-research" id="aiBox">
           <summary>🔎 AI research: find everything about the brand online</summary>
@@ -52,8 +63,8 @@
   <main class="stage">
     <div class="toolbar">
       <div class="seg" id="engine">
-        <button data-v="template" class="on">Template</button>
-        <button data-v="ai">AI Designer</button>
+        <button data-v="ai" class="on">AI design</button>
+        <button data-v="template">Quick template</button>
       </div>
       <select id="themeQuick" title="Theme"></select>
       <div class="seg" id="device">
@@ -68,7 +79,7 @@
       <button id="btnDownload">⬇ Download website</button>
     </div>
 
-    <div class="ai-bar" id="aiBar" hidden>
+    <div class="ai-bar" id="aiBar">
       <input id="aiStyle" placeholder="Design direction (optional): e.g. 'luxury, dark & gold, editorial typography, lots of whitespace'">
       <button id="btnDesign">✨ Generate with AI</button>
       <span class="ai-status" id="aiStatus"></span>
@@ -78,6 +89,7 @@
   </main>
 </div>
 <div class="toast" id="toast"></div>
+<script src="shared.js"></script>
 <script src="generator.js"></script>
 <script src="app.js"></script>
 </body>

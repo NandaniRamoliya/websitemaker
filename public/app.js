@@ -69,7 +69,7 @@
   const blank = () => ({ brand: { template: "modern", font: "theme" }, contact: {}, media: { gallery: [] }, services: [], stats: [], testimonials: [], team: [], faq: [], social: {}, cta: {}, seo: {}, labels: {}, hiddenSections: [] });
 
   let state = load() || blank();
-  let engine = "template";
+  let engine = "ai";
   let aiHtml = "";
   let aiAvailable = false;
 
@@ -106,7 +106,10 @@
     }, 500);
   }
   let renderT;
-  function changed() { save(); clearTimeout(renderT); renderT = setTimeout(renderPreview, 250); }
+  function changed() {
+    save(); clearTimeout(renderT); renderT = setTimeout(renderPreview, 250);
+    if (engine === "ai" && aiHtml) $("#aiStatus").textContent = "Inputs changed – click Generate to update the design.";
+  }
 
   // Compress uploaded images in-browser so the site stays light.
   function fileToDataUrl(file, max = 1600) {
@@ -278,10 +281,7 @@
   function currentHtml() { return engine === "ai" && aiHtml ? aiHtml : SiteForge.generateSite(state); }
   function renderPreview() {
     if (engine === "ai" && aiHtml) return; // AI design stays until regenerated
-    const f = $("#preview");
-    const y = f.contentWindow?.scrollY || 0;
-    f.srcdoc = SiteForge.generateSite(state);
-    f.onload = () => f.contentWindow.scrollTo(0, y);
+    SF.setPreview($("#preview"), SiteForge.generateSite(state));
   }
 
   // ---------------- merge imported data (fills blanks, never overwrites) ----------------
@@ -413,12 +413,13 @@
     status.textContent = "Thinking about the design…";
     try {
       await sse("/api/ai/design", { data, style: $("#aiStyle").value }, {
+        reset: () => { html = ""; },
         text: (t) => {
           html += t;
           status.textContent = `Writing… ${(html.length / 1024).toFixed(0)} KB`;
-          if (Date.now() - last > 2000) { last = Date.now(); $("#preview").srcdoc = restore(html); }
+          if (Date.now() - last > 2000) { last = Date.now(); SF.setPreview($("#preview"), SF.partialHtml(restore(html))); }
         },
-        done: () => { aiHtml = restore(html); $("#preview").srcdoc = aiHtml; status.textContent = "✓ Done – edit inputs & regenerate anytime"; },
+        done: () => { aiHtml = restore(html); SF.setPreview($("#preview"), aiHtml, false); status.textContent = "✓ Done – edit inputs & regenerate anytime"; },
         error: (e) => { throw new Error(e.error); },
       });
     } catch (e) { status.textContent = "✗ " + e.message; toast(e.message, true); }
@@ -431,7 +432,7 @@
     [...$("#engine").children].forEach((x) => x.classList.toggle("on", x === b));
     $("#aiBar").hidden = engine !== "ai";
     $("#themeQuick").hidden = engine === "ai";
-    if (engine === "ai" && aiHtml) $("#preview").srcdoc = aiHtml; else renderPreview();
+    if (engine === "ai" && aiHtml) SF.setPreview($("#preview"), aiHtml, false); else renderPreview();
     if (engine === "ai" && !aiAvailable) $("#aiStatus").textContent = "Start the server with GEMINI_API_KEY (free) to enable.";
   };
   $("#device").onclick = (e) => {
@@ -482,6 +483,54 @@
     };
   }
 
+
+  // ---------------- one click: Maps link → complete website ----------------
+  $("#btnMagic").onclick = async () => {
+    const url = $("#magicUrl").value.trim();
+    if (!/^https?:\/\//.test(url)) return SF.toast("Paste a Google Maps link (https://…)", true);
+    const btn = $("#btnMagic"); busy(btn, true, "Building…");
+    $("#log").innerHTML = "";
+    let html = "", last = 0;
+    // switch to AI view
+    engine = "ai"; [...$("#engine").children].forEach((x) => x.classList.toggle("on", x.dataset.v === "ai"));
+    $("#aiBar").hidden = false; $("#themeQuick").hidden = true;
+    try {
+      await SF.sse("/api/auto", { mapUrl: url }, {
+        log: (e) => { log(e.msg); $("#aiStatus").textContent = e.msg; },
+        data: (e) => { state = { ...blank(), ...e.data }; save(); renderForm(); },
+        reset: () => { html = ""; },
+        html: (e) => { html += e.text; if (Date.now() - last > 2500) { last = Date.now(); SF.setPreview($("#preview"), SF.partialHtml(html)); } },
+        done: (e) => {
+          state = { ...blank(), ...e.data }; aiHtml = e.engine === "ai" ? e.html : "";
+          save(); renderForm();
+          SF.setPreview($("#preview"), e.html, false);
+          if (!aiHtml) { engine = "template"; [...$("#engine").children].forEach((x) => x.classList.toggle("on", x.dataset.v === "template")); }
+          $("#aiStatus").textContent = `✓ Saved as ${e.url}`;
+          history.replaceState(null, "", `?site=${encodeURIComponent(e.slug)}`);
+          SF.toast("Website ready – tweak anything on the left, then Generate again or Download.");
+        },
+        error: (e) => { throw new Error(e.error); },
+      });
+    } catch (e) { log("✗ " + e.message); SF.toast(e.message, true); }
+    busy(btn, false);
+  };
+
+  async function loadSavedSite(slug) {
+    try {
+      const [data, html] = await Promise.all([
+        fetch(`/sites/${slug}/data.json`).then((r) => { if (!r.ok) throw new Error("not found"); return r.json(); }),
+        fetch(`/sites/${slug}/index.html`).then((r) => r.text()),
+      ]);
+      state = { ...blank(), ...data };
+      aiHtml = html; engine = "ai";
+      [...$("#engine").children].forEach((x) => x.classList.toggle("on", x.dataset.v === "ai"));
+      $("#themeQuick").hidden = true;
+      renderForm(); SF.setPreview($("#preview"), html, false);
+      $("#aiStatus").textContent = `Editing saved demo: ${state.brand.name}`;
+      return true;
+    } catch { SF.toast("Saved site not found", true); return false; }
+  }
+
   // ---------------- boot ----------------
   fetch("/api/status").then((r) => r.json()).then((s) => {
     aiAvailable = s.ai;
@@ -489,6 +538,9 @@
     ["#btnResearch", "#btnCopy", "#btnDesign"].forEach((id) => { const b = $(id); b.dataset.ai = "1"; b.disabled = !aiAvailable; if (!aiAvailable) b.title = "Start the server with GEMINI_API_KEY (free) to enable AI"; });
     $("#aiNote").textContent = aiAvailable ? `Uses ${who} to find details, photos, reviews and hours.` : "AI is off: get a FREE key at aistudio.google.com/apikey and start the server with GEMINI_API_KEY=your-key. Import & templates work without it.";
   }).catch(() => {});
+  $("#themeQuick").hidden = engine === "ai";
   renderForm();
-  renderPreview();
+  const siteParam = new URLSearchParams(location.search).get("site");
+  if (siteParam) loadSavedSite(siteParam);
+  else renderPreview();
 })();

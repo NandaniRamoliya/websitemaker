@@ -430,3 +430,6 @@ FodyWeavers.xsd
 # Node
 node_modules/
 .env
+
+# Generated demo sites
+sites/

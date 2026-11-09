@@ -1,6 +1,23 @@
 # SiteForge: AI website maker
 
-Enter brand details (or let it find them online) and get a complete, responsive website you can download as a single HTML file.
+Turn a Google Maps link, or a whole sheet of leads, into complete, unique, AI-designed websites you can show to businesses as demos. You can also fill in brand details by hand and download any site as a single HTML file.
+
+## Leads → demo websites (main workflow)
+
+1. Open **http://localhost:3000/leads.html** (or click **📋 Leads**).
+2. Paste your Google Sheet link and click **Load leads**. The sheet must be shared as *Anyone with the link → Viewer*. You can also upload a CSV.
+3. Columns are recognised automatically: Business Name, Phone, Google Rating, Reviews Count, Full Address, Google Maps URL, Has Website, Website URL, and Locality/Specialty notes.
+4. Click **⚡ Build** on a lead, or tick several and click **Build selected**. Each site is built automatically:
+   - facts from the sheet: name, phone, WhatsApp (mobile numbers only), rating, address, an exact map pin from the Maps URL, and a "Rate us on Google" link
+   - AI-written copy: headline, about, services, why-choose-us, FAQ, SEO. It never invents prices, reviews or years.
+   - a **unique AI design**: each business type has several visual directions and hero layouts, picked per business, so neighbouring leads look different. **↻ New design** gives the same lead a fresh look.
+   - free stock photos matched to the business type (jewellery, spa, clinic, dental, restaurant, salon, makeup, nails, banquet)
+   - automatic quality fixes: no sideways scrolling on phones, and a WhatsApp button and map are added if the design missed them
+5. Sites are saved to `sites/<name>/index.html` and served at `/sites/<name>/`. Use **View**, **Edit** (opens the editor), **Download**, or **Export CSV** to get every lead with its demo link.
+
+On the main page you can also paste a single **Google Maps link** and click **⚡ Build website**. If that business is in your loaded sheet, its phone, address and rating are used automatically.
+
+Optional: set `GOOGLE_PLACES_API_KEY` (Google Places API (New), the official API) to add each business's **real photos, Google reviews and opening hours**. Google requires a billing account for it, but includes a monthly free usage allowance.
 
 ## Run (free)
 
@@ -56,13 +73,13 @@ If you hit the free limit you'll see a "limit reached" message: wait a minute, o
 
 ## Config
 
-`PORT` (default 3000), `GEMINI_MODEL` (comma-separated list tried in order, default `gemini-3.6-flash,gemini-3.5-flash,gemini-3.8-flash,gemini-3.7-flash,gemini-3.1-flash-lite`), `CLAUDE_MODEL` (default `claude-opus-5-5`), `AI_PROVIDER`.
+`PORT` (default 3000), `SITES_DIR` (where demos are saved, default `./sites`), `GOOGLE_PLACES_API_KEY` (optional), `GEMINI_MODEL` (comma-separated list tried in order, default `gemini-3.6-flash,gemini-3.5-flash,gemini-3.8-flash,gemini-3.7-flash,gemini-3.1-flash-lite`), `CLAUDE_MODEL` (default `claude-opus-5-5`), `AI_PROVIDER`.
 Behind a corporate proxy, run with `NODE_USE_ENV_PROXY=1` so the importer's `fetch` uses `HTTPS_PROXY`.
 
 ## Structure
 
 ```
-server.js            Express API: /api/import-url, /api/resolve-map, /api/ai/{research,copy,design}
+server.js            Express API: /api/auto, /api/leads/load, /api/sites, /api/import-url, /api/resolve-map, /api/ai/*
 lib/scrape.js        website -> brand data extractor
 lib/maps.js          Google Maps link parser -> embed URL
 lib/safeFetch.js     fetch with SSRF guard, redirect checks, size and time limits
@@ -71,6 +88,12 @@ lib/gemini.js        Google Gemini (free tier) research, copywriting and design
 lib/anthropic.js     Anthropic Claude (paid) research, copywriting and design
 lib/prompts.js       prompts shared by both providers
 lib/normalize.js     cleans AI output into the form's exact shape
+lib/leads.js         Google Sheet / CSV leads → website facts
+lib/categories.js    per-business-type photos, services and design directions
+lib/autobuild.js     one-click pipeline: facts → AI copy → AI design → quality fixes → saved site
+lib/places.js        optional Google Places API (New) enrichment
+public/leads.html    leads dashboard (bulk demo builder)
+public/shared.js     shared UI helpers (incl. the preview link guard)
 public/generator.js  template engine (brand JSON -> website HTML)
 public/app.js        builder UI
 ```
