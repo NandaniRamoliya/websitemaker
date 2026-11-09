@@ -5,7 +5,7 @@
 
   // ---------------- Schema: every input the builder supports ----------------
   const FONTS = ["theme", "Inter", "Poppins", "Montserrat", "Playfair Display", "Lora", "DM Sans", "Space Grotesk", "Outfit", "Nunito", "Raleway", "Merriweather", "Cormorant Garamond", "Rubik", "Manrope"];
-  const SECTIONS = ["hero", "stats", "about", "services", "gallery", "video", "team", "reviews", "faq", "cta", "contact"];
+  const SECTIONS = ["hero", "stats", "about", "services", "highlights", "gallery", "video", "team", "reviews", "faq", "cta", "contact"];
 
   const SCHEMA = [
     { id: "brand", title: "🏷 Brand basics", open: true, fields: [
@@ -14,7 +14,7 @@
       { k: "brand.industry", label: "Industry / category", ph: "Café, dental clinic, SaaS, salon…" },
       { k: "brand.description", label: "Short description", type: "textarea", rows: 3 },
       { k: "brand.about", label: "About / story", type: "textarea", rows: 5, hint: "Blank line = new paragraph" },
-      { k: "brand.founded", label: "Founded (year)", ph: "2015" },
+      { k: "brand.founded", label: "Founded (year)", ph: "e.g. 2015 – leave empty if unknown", find: "since" },
       { k: "brand.logo", label: "Logo", type: "image", max: 600 },
     ]},
     { id: "design", title: "🎨 Design & style", fields: [
@@ -27,11 +27,11 @@
     { id: "contact", title: "📍 Contact & location", fields: [
       { k: "contact.phone", label: "Phone", ph: "+91 98765 43210" },
       { k: "contact.whatsapp", label: "WhatsApp number", ph: "+919876543210", hint: "Adds a floating WhatsApp chat button" },
-      { k: "contact.email", label: "Email", ph: "hello@brand.com", hint: "Enables the contact form" },
+      { k: "contact.email", label: "Email", ph: "e.g. hello@business.com", hint: "Enables the contact form", find: "email" },
       { k: "contact.address", label: "Address", type: "textarea", rows: 2 },
       { k: "contact.mapUrl", label: "Google Maps link / embed code / coordinates", type: "map", ph: "https://maps.app.goo.gl/…" },
-      { k: "contact.hours", label: "Opening hours", type: "textarea", rows: 3, ph: "Mon–Fri: 9:00 – 18:00\nSat: 10:00 – 14:00\nSun: Closed" },
-      { k: "contact.priceRange", label: "Price range", ph: "₹₹ or $$" },
+      { k: "contact.hours", label: "Opening hours", type: "textarea", rows: 3, ph: "Copy from the Google listing, e.g.\nMon–Sat: 10:00 – 20:00\nSun: Closed", find: "maps" },
+      { k: "contact.priceRange", label: "Price range", ph: "e.g. ₹₹ (see Google listing)", find: "maps" },
     ]},
     { id: "media", title: "🖼 Images & video", fields: [
       { k: "media.hero", label: "Hero / cover image", type: "image" },
@@ -44,8 +44,9 @@
       { k: "title", ph: "Name", w: 2 }, { k: "price", ph: "Price", w: 1 },
       { k: "description", ph: "Description", type: "textarea", rows: 2 }, { k: "image", type: "image", label: "" },
     ]},
+    { id: "highlights", title: "💡 Why choose us", list: "highlights", item: [{ k: "title", ph: "Reason (e.g. Hygienic, modern setup)" }, { k: "text", ph: "One-line explanation", type: "textarea", rows: 2 }] },
     { id: "stats", title: "📊 Highlights / numbers", list: "stats", item: [{ k: "value", ph: "10k+", w: 1 }, { k: "label", ph: "Happy customers", w: 2 }] },
-    { id: "testimonials", title: "⭐ Reviews / testimonials", list: "testimonials", item: [
+    { id: "testimonials", title: "⭐ Reviews / testimonials", list: "testimonials", find: "reviews", item: [
       { k: "name", ph: "Name", w: 2 }, { k: "rating", type: "select", options: ["5", "4", "3", "2", "1"], w: 1 },
       { k: "role", ph: "Role / source (e.g. Google review)" }, { k: "text", ph: "Review text", type: "textarea", rows: 2 },
     ]},
@@ -53,8 +54,8 @@
       { k: "name", ph: "Name", w: 2 }, { k: "role", ph: "Role", w: 1 }, { k: "bio", ph: "Short bio", type: "textarea", rows: 2 }, { k: "photo", type: "image", label: "", max: 500 },
     ]},
     { id: "faq", title: "❓ FAQ", list: "faq", item: [{ k: "q", ph: "Question" }, { k: "a", ph: "Answer", type: "textarea", rows: 2 }] },
-    { id: "social", title: "🔗 Social & links", fields: ["instagram", "facebook", "twitter", "linkedin", "youtube", "tiktok", "pinterest", "website"]
-      .map((s) => ({ k: `social.${s}`, label: s === "twitter" ? "X / Twitter" : s[0].toUpperCase() + s.slice(1), ph: "https://…" })) },
+    { id: "social", title: "🔗 Social & links", fields: ["google", "instagram", "facebook", "website", "youtube", "twitter", "linkedin", "tiktok", "pinterest"]
+      .map((s) => ({ k: `social.${s}`, label: { google: "Google Business / Maps link", twitter: "X / Twitter" }[s] || s[0].toUpperCase() + s.slice(1), ph: "https://…", more: ["youtube", "twitter", "linkedin", "tiktok", "pinterest"].includes(s), find: ["instagram", "facebook", "youtube"].includes(s) ? s : s === "google" ? "maps" : undefined })) },
     { id: "cta", title: "🎯 Call to action", fields: [
       { k: "cta.text", label: "Button text", ph: "Book a table" },
       { k: "cta.link", label: "Button link", ph: "#contact, https://calendly.com/…, tel:…" },
@@ -66,7 +67,7 @@
     { id: "sections", title: "🧩 Sections to show", custom: "sections" },
   ];
 
-  const blank = () => ({ brand: { template: "modern", font: "theme" }, contact: {}, media: { gallery: [] }, services: [], stats: [], testimonials: [], team: [], faq: [], social: {}, cta: {}, seo: {}, labels: {}, hiddenSections: [] });
+  const blank = () => ({ brand: { template: "modern", font: "theme" }, contact: {}, media: { gallery: [] }, services: [], highlights: [], stats: [], testimonials: [], team: [], faq: [], social: {}, cta: {}, seo: {}, labels: {}, hiddenSections: [] });
 
   let state = load() || blank();
   let engine = "ai";
@@ -107,7 +108,7 @@
   }
   let renderT;
   function changed() {
-    save(); clearTimeout(renderT); renderT = setTimeout(renderPreview, 250);
+    save(); clearTimeout(renderT); renderT = setTimeout(() => { renderPreview(); updateMeter(); }, 250);
     if (engine === "ai" && aiHtml) $("#aiStatus").textContent = "Inputs changed – click Generate to update the design.";
   }
 
@@ -156,7 +157,8 @@
 
   function imageField(f, obj, path) {
     const thumb = el("div", { class: "thumb" });
-    const url = el("input", { placeholder: "Image URL or upload →", value: (get(obj, path) || "").startsWith("data:") ? "(uploaded image)" : get(obj, path) || "" });
+    const shown = (v) => (!v ? "" : v.startsWith("data:image/svg") ? "(generated monogram logo – upload theirs to replace)" : v.startsWith("data:") ? "(uploaded image)" : v);
+    const url = el("input", { placeholder: "Image URL or upload →", value: shown(get(obj, path) || "") });
     const refresh = () => { const v = get(obj, path); thumb.style.backgroundImage = v ? `url("${v}")` : ""; };
     url.addEventListener("input", () => { set(obj, path, url.value.trim()); refresh(); changed(); });
     const file = el("input", { type: "file", accept: "image/*", hidden: true, onchange: async (e) => {
@@ -264,9 +266,16 @@
     const root = $("#form");
     root.replaceChildren(...SCHEMA.map((sec) => {
       const body = el("div", { class: "sec-body" });
+      let moreBox = null;
       for (const f of sec.fields || []) {
-        body.append(el("div", { class: "field" }, f.label ? el("label", { class: "lbl" }, f.label) : null, input(f, state, f.k), f.hint ? el("div", { class: "hint" }, f.hint) : null));
+        const target = f.more ? (moreBox ||= el("div", { class: "sec-body more-body" })) : body;
+        target.append(el("div", { class: "field" }, f.label ? el("label", { class: "lbl" }, f.label, findLink(f.find, f.k)) : null, input(f, state, f.k), f.hint ? el("div", { class: "hint" }, f.hint) : null));
       }
+      if (moreBox) {
+        const anyFilled = (sec.fields || []).some((f) => f.more && String(get(state, f.k) || "").trim());
+        body.append(el("details", { class: "more", open: anyFilled }, el("summary", {}, "More platforms (YouTube, X, LinkedIn, TikTok, Pinterest)"), moreBox));
+      }
+      if (sec.find && !(state[sec.list] || []).length) body.append(el("div", { class: "hint" }, "Copy 2–3 real reviews from the Google listing ", findLink(sec.find)));
       if (sec.list) listSection(sec, body);
       if (sec.custom === "sections") sectionsToggle(body);
       return el("details", { class: "sec", "data-id": sec.id, open: openIds.size ? openIds.has(sec.id) : !!sec.open },
@@ -274,7 +283,48 @@
     }));
     updateCounts();
     $("#themeQuick").value = state.brand.template || "modern";
-    $("#rName").value ||= state.brand.name || "";
+    $("#rName").value = state.brand.name || $("#rName").value;
+    $("#rLoc").value = [state.meta?.locality, state.meta?.city].filter(Boolean).join(", ") || $("#rLoc").value;
+    if (state.contact?.mapUrl && !$("#magicUrl").value) $("#magicUrl").value = state.contact.mapUrl;
+    updateMeter();
+  }
+
+  // ---------------- "find it" links for facts only the owner / Google know ----------------
+  function findLink(kind, key) {
+    if (!kind) return null;
+    const name = state.brand?.name || "";
+    const city = state.meta?.city || "";
+    const q = (extra) => `https://www.google.com/search?q=${encodeURIComponent(`${name} ${city} ${extra}`.trim())}`;
+    const url = {
+      maps: state.contact?.mapUrl || q("google maps"),
+      reviews: state.contact?.mapUrl || q("reviews"),
+      instagram: q("instagram"), facebook: q("facebook"), youtube: q("youtube"),
+      email: q("email contact"), since: q("since established"),
+    }[kind];
+    if (!url || !name) return null;
+    const label = kind === "maps" || kind === "reviews" ? "🔎 Open Google listing" : "🔎 Find";
+    return el("a", { class: "find", href: url, target: "_blank", rel: "noopener", title: "Opens a search in a new tab – copy the real value here" }, label);
+  }
+
+  // ---------------- completeness meter ----------------
+  function updateMeter() {
+    let total = 0, filled = 0;
+    const isSet = (v) => (Array.isArray(v) ? v.some((x) => x && (typeof x !== "object" || Object.values(x).some((y) => String(y || "").trim()))) : String(v ?? "").trim() !== "");
+    for (const sec of SCHEMA) {
+      for (const f of sec.fields || []) { if (f.k === "social.website" && state.meta?.category) continue; if (["lang", "social.twitter", "social.linkedin", "social.tiktok", "social.pinterest", "social.youtube", "media.video"].includes(f.k)) continue; total++; if (isSet(get(state, f.k))) filled++; }
+      if (sec.list && sec.list !== "team") { total++; if (isSet(state[sec.list])) filled++; }
+    }
+    const pct = Math.round((filled / total) * 100);
+    const needs = state.meta?.needsOwner || [];
+    const box = $("#meter");
+    if (!state.brand?.name) { box.hidden = true; return; }
+    box.hidden = false;
+    box.innerHTML = "";
+    box.append(
+      el("div", { class: "meter-top" }, el("strong", {}, `${pct}% complete`), el("span", {}, `${filled}/${total} fields`)),
+      el("div", { class: "meter-bar" }, el("i", { style: `width:${pct}%` })),
+      needs.length ? el("div", { class: "hint" }, "Ask the owner / copy from Google: ", needs.join(" · ")) : el("div", { class: "hint" }, "Everything is filled in ✓"),
+    );
   }
 
   // ---------------- preview ----------------

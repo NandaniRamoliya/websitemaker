@@ -47,6 +47,7 @@
     youtube: '<path d="M23 7.2a3 3 0 0 0-2.1-2.1C19 4.6 12 4.6 12 4.6s-7 0-8.9.5A3 3 0 0 0 1 7.2 31 31 0 0 0 .5 12 31 31 0 0 0 1 16.8a3 3 0 0 0 2.1 2.1c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 0 0 2.1-2.1 31 31 0 0 0 .5-4.8 31 31 0 0 0-.5-4.8zM9.7 15.1V8.9l5.8 3.1-5.8 3.1z"/>',
     tiktok: '<path d="M16.6 3c.4 2.3 1.9 3.8 4.4 4v3.2a8 8 0 0 1-4.3-1.3v6.4A6.3 6.3 0 1 1 10.4 9v3.3a3 3 0 1 0 2.9 3V3h3.3z"/>',
     pinterest: '<path d="M12 2a10 10 0 0 0-3.6 19.3c-.1-.8-.2-2 0-2.9l1.2-5s-.3-.6-.3-1.5c0-1.4.8-2.4 1.8-2.4.9 0 1.3.6 1.3 1.4 0 .9-.5 2.1-.8 3.3-.2 1 .5 1.8 1.5 1.8 1.8 0 3.1-1.9 3.1-4.6 0-2.4-1.7-4.1-4.2-4.1-2.9 0-4.5 2.1-4.5 4.4 0 .9.3 1.8.8 2.3l.1.3-.3 1.1c0 .2-.2.2-.4.1-1.3-.6-2-2.4-2-3.9 0-3.2 2.3-6.1 6.7-6.1 3.5 0 6.2 2.5 6.2 5.8 0 3.5-2.2 6.3-5.2 6.3-1 0-2-.5-2.3-1.1l-.6 2.4c-.2.9-.9 2-1.3 2.7A10 10 0 1 0 12 2z"/>',
+    google: '<path d="M21.6 12.2c0-.7-.1-1.4-.2-2H12v3.8h5.4a4.6 4.6 0 0 1-2 3v2.5h3.2c1.9-1.7 3-4.3 3-7.3z"/><path d="M12 22c2.7 0 5-.9 6.6-2.4l-3.2-2.5c-.9.6-2 1-3.4 1-2.6 0-4.8-1.8-5.6-4.1H3.1v2.6A10 10 0 0 0 12 22z"/><path d="M6.4 14c-.2-.6-.3-1.3-.3-2s.1-1.4.3-2V7.4H3.1a10 10 0 0 0 0 9.2z"/><path d="M12 5.9c1.5 0 2.8.5 3.8 1.5l2.9-2.9A10 10 0 0 0 3.1 7.4L6.4 10c.8-2.3 3-4.1 5.6-4.1z"/>',
     website: '<path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm6.9 6h-3a15.7 15.7 0 0 0-1.4-3.6A8 8 0 0 1 18.9 8zM12 4c.8 1.2 1.5 2.5 1.9 4h-3.8c.4-1.5 1.1-2.8 1.9-4zM4.3 14a8.2 8.2 0 0 1 0-4h3.4a16.5 16.5 0 0 0 0 4H4.3zm.8 2h3a15.7 15.7 0 0 0 1.4 3.6A8 8 0 0 1 5.1 16zm3-8h-3a8 8 0 0 1 4.4-3.6C8 5.5 7.5 6.7 8.1 8zM12 20c-.8-1.2-1.5-2.5-1.9-4h3.8c-.4 1.5-1.1 2.8-1.9 4zm2.3-6H9.7a14.7 14.7 0 0 1 0-4h4.6a14.7 14.7 0 0 1 0 4zm.3 5.6c.6-1.1 1.1-2.3 1.4-3.6h3a8 8 0 0 1-4.4 3.6zM16.3 14a16.5 16.5 0 0 0 0-4h3.4a8.2 8.2 0 0 1 0 4h-3.4z"/>',
     whatsapp: '<path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.3 14.2c-.2.6-1.3 1.2-1.8 1.3-.5 0-1 .2-3.3-.7-2.8-1.1-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .5l-.4.6-.4.4c-.1.2-.3.3-.1.6.2.3.8 1.3 1.6 2.1 1.1 1 2 1.3 2.3 1.4.3.1.5.1.6-.1l.9-1.1c.2-.3.4-.2.7-.1l1.9.9c.3.1.5.2.5.3.1.1.1.7-.1 1.3z"/>',
   };
@@ -66,6 +67,7 @@
     const reviews = filled(d.testimonials, "text");
     const team = filled(d.team, "name");
     const faq = filled(d.faq, "q");
+    const highlights = filled(d.highlights, "title");
     const gallery = (m.gallery || []).filter(has);
     const mapSrc = mapEmbedFrom(c);
     const video = videoEmbed(m.video);
@@ -78,6 +80,7 @@
     const nav = [
       has(b.about) && ["about", "About"],
       services.length && ["services", d.labels?.services || "Services"],
+      highlights.length && ["why", "Why us"],
       gallery.length && ["gallery", "Gallery"],
       team.length && ["team", "Team"],
       reviews.length && ["reviews", "Reviews"],
@@ -136,6 +139,11 @@
     </article>`).join("")}
   </div>
 </div></section>` : "",
+      highlights: highlights.length ? `
+<section id="why"><div class="wrap">
+  <div class="sec-head reveal"><span class="eyebrow">Why choose us</span><h2>Why people choose ${esc(name)}</h2></div>
+  <div class="why">${highlights.map((x, i) => `<div class="why-item reveal"><span class="why-n">${String(i + 1).padStart(2, "0")}</span><h3>${esc(x.title)}</h3>${has(x.text) ? `<p>${esc(x.text)}</p>` : ""}</div>`).join("")}</div>
+</div></section>` : "",
       gallery: gallery.length ? `
 <section id="gallery"><div class="wrap">
   <div class="sec-head reveal"><span class="eyebrow">Gallery</span><h2>A look inside</h2></div>
@@ -189,7 +197,7 @@
 </div></section>`,
     };
 
-    const order = d.sectionOrder || ["hero", "stats", "about", "services", "gallery", "video", "team", "reviews", "faq", "cta", "contact"];
+    const order = d.sectionOrder || ["hero", "stats", "about", "services", "highlights", "gallery", "video", "team", "reviews", "faq", "cta", "contact"];
     const hidden = new Set(d.hiddenSections || []);
     const body = order.filter((k) => !hidden.has(k)).map((k) => sec[k] || "").join("\n");
 
@@ -240,6 +248,9 @@ header{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--bg) 8
 .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;z-index:100;padding:30px}
 .lightbox[hidden]{display:none}.lightbox img{max-height:90vh;border-radius:8px}.lb-close{position:absolute;top:16px;right:24px;font-size:2.5rem;color:#fff;background:none;border:0;cursor:pointer}
 .video{position:relative;aspect-ratio:16/9;border-radius:var(--radius);overflow:hidden}.video iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.why{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:22px}
+.why-item{padding:28px;border-radius:var(--radius);background:var(--surface);border:1px solid color-mix(in srgb,var(--text) 6%,transparent)}
+.why-n{font-family:var(--head);font-weight:800;font-size:1.6rem;color:var(--primary);opacity:.85}.why-item h3{margin:8px 0 6px;font-size:1.15rem}.why-item p{color:var(--muted);font-size:.96rem}
 .team{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:28px;text-align:center}
 .member img,.avatar{width:150px;height:150px;border-radius:50%;object-fit:cover;margin:0 auto 16px}
 .avatar{display:grid;place-items:center;background:var(--primary);color:#fff;font-size:3rem;font-family:var(--head)}

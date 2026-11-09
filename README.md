@@ -28,6 +28,16 @@ Turn a Google Maps link, or a whole sheet of leads, into complete, unique, AI-de
 
 On the main page you can also paste a single **Google Maps link** and click **⚡ Build website**. If that business is in your loaded sheet, its phone, address and rating are used automatically.
 
+### The left panel is filled in for you
+
+After a build (or when you click **Edit** on a demo), every field that can be filled honestly is already filled:
+- name, tagline, description, about, a generated **monogram logo** in the brand colours
+- theme, colours, and the **font the AI design actually uses**
+- phone, WhatsApp, address, Google map, Google Business link, website and social links found in your sheet
+- photos, services (with descriptions and images), **why choose us**, highlights, FAQ, call to action, SEO
+
+A **completeness meter** shows what's left. Facts only the owner or Google know (opening hours, email, price range, founded year, Instagram/Facebook, real reviews) are never invented. Each has a **🔎 Find** / **Open Google listing** link so you can copy the real value in seconds, and the build log lists them as "Ask the owner for: …". With `GOOGLE_PLACES_API_KEY` set, hours, price range, real reviews, real photos and the website are filled automatically.
+
 Optional: set `GOOGLE_PLACES_API_KEY` (Google Places API (New), the official API) to add each business's **real photos, Google reviews and opening hours**. Google requires a billing account for it, but includes a monthly free usage allowance.
 
 ## Run (free)
