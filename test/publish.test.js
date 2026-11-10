@@ -9,7 +9,8 @@ const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "pinpage-test-"));
 process.env.SITES_DIR = tmp;
 process.env.PINPAGE_WHATSAPP = "+91 98765 43210";
 process.env.PINPAGE_WAITLIST_URL = "https://forms.gle/example";
-const { demoVersion, packageDemos, productPage, publishConfigured } = await import("../lib/publish.js");
+const { demoVersion, packageDemos, productPage, publishConfigured, wranglerBin } = await import("../lib/publish.js");
+import { execFileSync } from "node:child_process";
 
 test("demo copy is hidden from search and carries a ribbon with a Remove link", () => {
   const h = demoVersion("<html><head><title>x</title></head><body><p>hi</p></body></html>", { brand: { name: "Glow Salon" } });
@@ -42,4 +43,11 @@ test("product page gets the waitlist + WhatsApp links filled in", async () => {
 test("publishing stays off without a Cloudflare token", () => {
   delete process.env.CLOUDFLARE_API_TOKEN;
   assert.equal(publishConfigured(), false);
+});
+
+test("the Cloudflare CLI can be found and started", () => {
+  const bin = wranglerBin();
+  assert.ok(fs.existsSync(bin), bin);
+  const out = execFileSync(process.execPath, [bin, "--version"], { encoding: "utf8", env: { ...process.env, WRANGLER_SEND_METRICS: "false" } });
+  assert.match(out, /\d+\.\d+\.\d+/);
 });
