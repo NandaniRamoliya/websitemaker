@@ -323,7 +323,8 @@
     box.append(
       el("div", { class: "meter-top" }, el("strong", {}, `${pct}% complete`), el("span", {}, `${filled}/${total} fields`)),
       el("div", { class: "meter-bar" }, el("i", { style: `width:${pct}%` })),
-      needs.length ? el("div", { class: "hint" }, "Ask the owner / copy from Google: ", needs.join(" · ")) : el("div", { class: "hint" }, "Everything is filled in ✓"),
+      needs.length ? el("div", { class: "hint" }, "Ask the owner / copy from Google: ", needs.join(" · "))
+        : el("div", { class: "hint" }, filled >= total ? "Everything is filled in ✓" : `${total - filled} field(s) still empty`),
     );
   }
 
@@ -384,9 +385,11 @@
   }
   const log = (msg) => { const l = $("#log"); l.hidden = false; l.append(el("div", {}, msg)); l.scrollTop = l.scrollHeight; };
   function busy(btn, on, label) {
-    if (on) { btn.dataset.label = btn.innerHTML; btn.innerHTML = `<span class="spin"></span>${label || "Working…"}`; btn.disabled = true; }
-    else { btn.innerHTML = btn.dataset.label; btn.disabled = !aiAvailable && btn.dataset.ai === "1"; }
+    if (on) { btn.dataset.label = btn.innerHTML; btn.innerHTML = `<span class="spin"></span><span class="bl">${label || "Working…"}</span>`; btn.disabled = true; btn.classList.add("building"); }
+    else { btn.innerHTML = btn.dataset.label; btn.disabled = !aiAvailable && btn.dataset.ai === "1"; btn.classList.remove("building"); }
   }
+  const busyLabel = (btn, text) => { const b = btn.querySelector(".bl"); if (b) b.textContent = text; };
+  const debugLog = (msg) => { const d = $("#debugLog"); if (!d) return; $("#debugBox").hidden = false; d.append(el("div", {}, msg)); d.scrollTop = d.scrollHeight; };
 
   // Replace uploaded (data:) images with tokens so the AI prompt stays small.
   function tokenizeImages(data) {
@@ -456,23 +459,25 @@
     if (!state.brand.name) return toast("Add at least a brand name first", true);
     const btn = $("#btnDesign"); busy(btn, true, "Designing…");
     const status = $("#aiStatus");
+    const screen = SF.buildScreen(document.querySelector(".canvas"), state.brand.name, { onProgress: (pct) => busyLabel(btn, `Designing… ${pct}%`) });
+    screen.stage("design");
     const { data, map } = tokenizeImages({ ...state, contact: { ...state.contact, mapEmbed: SiteForge.mapEmbedFrom(state.contact) } });
     let html = "";
     let last = 0;
     const restore = (h) => h.replace(/__IMG_(\d+)__/g, (_, i) => map[+i] || "").replace(/^```html\s*/i, "").replace(/```\s*$/, "");
-    status.textContent = "Thinking about the design…";
+    status.textContent = "Designing a fresh look…";
     try {
       await sse("/api/ai/design", { data, style: $("#aiStyle").value }, {
         reset: () => { html = ""; },
         text: (t) => {
           html += t;
-          status.textContent = `Writing… ${(html.length / 1024).toFixed(0)} KB`;
+          screen.bytes(html.length, html);
           if (Date.now() - last > 2000) { last = Date.now(); SF.setPreview($("#preview"), SF.partialHtml(restore(html))); }
         },
-        done: (e) => { aiHtml = restore(e?.html || html); SF.setPreview($("#preview"), aiHtml, false); status.textContent = "✓ Done – edit inputs & regenerate anytime"; },
+        done: (e) => { screen.stage("quality"); aiHtml = restore(e?.html || html); SF.setPreview($("#preview"), aiHtml, false); screen.done(); status.textContent = "✓ New design ready"; },
         error: (e) => { throw new Error(e.error); },
       });
-    } catch (e) { status.textContent = "✗ " + e.message; toast(e.message, true); }
+    } catch (e) { status.textContent = "✗ " + e.message; screen.fail(e.message); toast(e.message, true); }
     busy(btn, false);
   };
 
@@ -542,30 +547,38 @@
   $("#btnMagic").onclick = async () => {
     const url = $("#magicUrl").value.trim();
     if (!/^https?:\/\//.test(url)) return SF.toast("Paste a Google Maps link (https://…)", true);
-    const btn = $("#btnMagic"); busy(btn, true, "Building…");
-    $("#log").innerHTML = "";
+    const btn = $("#btnMagic"); busy(btn, true, "Starting…");
+    $("#log").innerHTML = ""; $("#debugLog").innerHTML = ""; $("#debugBox").hidden = true;
     let html = "", last = 0;
+    const screen = SF.buildScreen(document.querySelector(".canvas"), "Your new website", { onProgress: (pct) => busyLabel(btn, `Building… ${pct}%`) });
     // switch to AI view
     engine = "ai"; [...$("#engine").children].forEach((x) => x.classList.toggle("on", x.dataset.v === "ai"));
     $("#aiBar").hidden = false; $("#themeQuick").hidden = true;
     try {
       await SF.sse("/api/auto", { mapUrl: url }, {
-        log: (e) => { log(e.msg); $("#aiStatus").textContent = e.msg; },
+        log: (e) => {
+          log(e.msg); screen.log(e.msg); $("#aiStatus").textContent = e.msg;
+          const t = document.querySelector(".bs-title"); if (t && /^📍/.test(e.msg)) t.textContent = e.msg.replace(/^📍\s*/, "").split(" – ")[0];
+        },
+        debug: (e) => debugLog(e.msg),
+        stage: (e) => screen.stage(e.id),
         data: (e) => { state = { ...blank(), ...e.data }; save(); renderForm(); },
         reset: () => { html = ""; },
-        html: (e) => { html += e.text; if (Date.now() - last > 2500) { last = Date.now(); SF.setPreview($("#preview"), SF.partialHtml(html)); } },
+        html: (e) => { html += e.text; screen.bytes(html.length, html); if (Date.now() - last > 2500) { last = Date.now(); SF.setPreview($("#preview"), SF.partialHtml(html)); } },
         done: (e) => {
+          screen.done();
           state = { ...blank(), ...e.data }; aiHtml = e.engine === "ai" ? e.html : "";
           save(); renderForm();
           SF.setPreview($("#preview"), e.html, false);
           if (!aiHtml) { engine = "template"; [...$("#engine").children].forEach((x) => x.classList.toggle("on", x.dataset.v === "template")); }
-          $("#aiStatus").textContent = `✓ Saved as ${e.url}`;
+          $("#aiStatus").textContent = "✓ Website ready – edit anything on the left";
+          debugLog(`Saved as ${e.url}`);
           history.replaceState(null, "", `?site=${encodeURIComponent(e.slug)}`);
           SF.toast("Website ready – tweak anything on the left, then Generate again or Download.");
         },
         error: (e) => { throw new Error(e.error); },
       });
-    } catch (e) { log("✗ " + e.message); SF.toast(e.message, true); }
+    } catch (e) { log("✗ " + e.message); screen.fail(e.message); SF.toast(e.message, true); }
     busy(btn, false);
   };
 
@@ -588,9 +601,9 @@
   // ---------------- boot ----------------
   fetch("/api/status").then((r) => r.json()).then((s) => {
     aiAvailable = s.ai;
-    const who = s.provider === "gemini" ? "Google Gemini (free tier) – it reads web pages and uses Google Search when your key allows it –" : "Claude with live web search";
+    const who = "AI";
     ["#btnResearch", "#btnCopy", "#btnDesign"].forEach((id) => { const b = $(id); b.dataset.ai = "1"; b.disabled = !aiAvailable; if (!aiAvailable) b.title = "Start the server with GEMINI_API_KEY (free) to enable AI"; });
-    $("#aiNote").textContent = aiAvailable ? `Uses ${who} to find details, photos, reviews and hours.` : "AI is off: get a FREE key at aistudio.google.com/apikey and start the server with GEMINI_API_KEY=your-key. Import & templates work without it.";
+    $("#aiNote").textContent = aiAvailable ? "Uses AI to look the business up online and fill in what it finds. Always double-check facts." : "AI is off: get a FREE key at aistudio.google.com/apikey and start the server with GEMINI_API_KEY=your-key. Import & templates work without it.";
   }).catch(() => {});
   $("#themeQuick").hidden = engine === "ai";
   renderForm();

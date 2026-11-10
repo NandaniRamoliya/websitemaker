@@ -54,7 +54,8 @@ async function audit(page, url, width) {
     clicked++;
     if (page.url().split("#")[0] !== url.split("#")[0]) { issues.push(`clicking ${href} navigated away to ${page.url()}`); await page.goto(url); continue; }
     const box = await target.boundingBox();
-    if (box && (box.y > 450 || box.y + box.height < 0)) issues.push(`scroll: ${href} didn't scroll to its section (y=${Math.round(box.y)})`);
+    const atBottom = await page.evaluate(() => scrollY + innerHeight >= document.documentElement.scrollHeight - 2);
+    if (box && !atBottom && (box.y > 450 || box.y + box.height < 0)) issues.push(`scroll: ${href} didn't scroll to its section (y=${Math.round(box.y)})`);
     else if (box && href !== "#top") {
       const covered = await page.evaluate((y) => { const el = document.elementFromPoint(innerWidth / 2, Math.max(2, y + 8)); return !!(el && el.closest("header")); }, box.y);
       if (covered) issues.push(`scroll: ${href} section top hidden under the sticky header`);
@@ -99,7 +100,7 @@ async function audit(page, url, width) {
   // 4) FAQ
   await page.evaluate(() => window.scrollTo(0, 0));
   let faqTriggers = [];
-  for (const sel of ['details > summary', '[class*="faq-q" i]', '[class*="faq" i] [class*="question" i]', '[class*="accordion" i] button', '[class*="faq" i] button', '[class*="faq" i] [class*="header" i]']) {
+  for (const sel of ['details > summary', '[class*="faq-q" i]', '[class*="faq" i] [class*="question" i]', '[class*="accordion" i] button', '[class*="faq" i] button', '[class*="faq" i] [class*="header" i]', '#faq [onclick]', '[class*="faq-item" i]']) {
     faqTriggers = await page.$$(sel);
     if (faqTriggers.length) break;
   }

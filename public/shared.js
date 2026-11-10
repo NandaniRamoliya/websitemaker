@@ -70,5 +70,93 @@ window.SF = (() => {
     };
   }
 
-  return { $, toast, api, sse, guardPreview, partialHtml, setPreview, download, deviceSwitcher };
+  // ---------------- Build screen: a friendly, animated progress view over the preview ----------------
+  const STAGES = [
+    ["facts", "Reading the Google Maps listing", 4, 12],
+    ["content", "Writing the website content", 12, 30],
+    ["design", "Designing a unique website", 30, 86],
+    ["quality", "Checking every link & button", 86, 96],
+    ["save", "Saving your website", 96, 100],
+  ];
+  const TIPS = [
+    "Every design is made fresh for this business. No two sites look the same.",
+    "WhatsApp, click-to-call and directions are added automatically.",
+    "Every link, menu and button is tested before you see it.",
+    "Facts like hours or prices are never invented. Add them later in one click.",
+    "Tip: the sticky Call · WhatsApp · Directions bar appears on phones.",
+  ];
+  function buildScreen(host, name, { onProgress } = {}) {
+    host.querySelector(".bs")?.remove();
+    const el = document.createElement("div");
+    el.className = "bs";
+    el.innerHTML = `<div class="bs-card">
+      <div class="bs-glow"></div>
+      <div class="bs-skel"><i class="h"></i><i class="hero"></i><div class="row"><i></i><i></i><i></i></div></div>
+      <div class="bs-body">
+        <div class="bs-kicker">Building website</div>
+        <h3 class="bs-title"></h3>
+        <ol class="bs-steps">${STAGES.map(([id, label]) => `<li data-id="${id}"><span class="dot"></span>${label}</li>`).join("")}</ol>
+        <div class="bs-bar"><i></i></div>
+        <div class="bs-foot"><span class="bs-msg">Starting…</span><b class="bs-pct">0%</b></div>
+        <p class="bs-tip"></p>
+      </div></div>
+      <div class="bs-mini"><span class="spin"></span><span class="bs-mini-txt">Designing…</span><b class="bs-mini-pct">0%</b></div>`;
+    el.querySelector(".bs-title").textContent = name || "Your website";
+    host.append(el);
+    let current = -1, pct = 0, tipI = Math.floor(Math.random() * TIPS.length), creep;
+    const tip = el.querySelector(".bs-tip");
+    const showTip = () => { tip.textContent = TIPS[tipI++ % TIPS.length]; };
+    showTip();
+    const tipTimer = setInterval(showTip, 6000);
+    const set = (p) => {
+      pct = Math.max(pct, Math.min(100, p));
+      el.querySelector(".bs-bar i").style.width = pct + "%";
+      el.querySelector(".bs-pct").textContent = Math.round(pct) + "%";
+      el.querySelector(".bs-mini-pct").textContent = Math.round(pct) + "%";
+      onProgress?.(Math.round(pct), STAGES[Math.max(0, current)][1]);
+    };
+    const api = {
+      stage(id) {
+        const i = STAGES.findIndex((s) => s[0] === id);
+        if (i < 0 || i < current) return;
+        current = i;
+        el.querySelectorAll(".bs-steps li").forEach((li, k) => { li.classList.toggle("done", k < i); li.classList.toggle("on", k === i); });
+        el.querySelector(".bs-mini-txt").textContent = STAGES[i][1] + "…";
+        set(STAGES[i][2]);
+        // gentle creep so the bar never looks stuck
+        clearInterval(creep);
+        creep = setInterval(() => { const [, , a, b] = STAGES[current]; if (pct < b - 2) set(pct + (b - pct) * 0.03); }, 900);
+      },
+      bytes(n, html) { // design stage: map streamed size to progress; reveal the live site once real content exists
+        if (current < 2) api.stage("design");
+        const [, , a, b] = STAGES[2];
+        set(a + (b - a) * Math.min(1, n / 48000));
+        const body = html ? html.search(/<body[\s>]/i) : -1;
+        if (body > 0 && html.length - body > 6000) el.classList.add("mini");
+      },
+      log(msg) { el.querySelector(".bs-msg").textContent = msg.replace(/^[^\p{L}\p{N}]+/u, ""); },
+      done() {
+        clearInterval(creep); clearInterval(tipTimer);
+        el.querySelectorAll(".bs-steps li").forEach((li) => { li.classList.remove("on"); li.classList.add("done"); });
+        set(100);
+        el.classList.add("finished");
+        el.querySelector(".bs-mini-txt").textContent = "Ready";
+        setTimeout(() => el.classList.add("out"), 900);
+        setTimeout(() => el.remove(), 1500);
+      },
+      fail(msg) {
+        clearInterval(creep); clearInterval(tipTimer);
+        el.classList.remove("mini"); el.classList.add("failed");
+        el.querySelector(".bs-kicker").textContent = "Couldn't finish";
+        el.querySelector(".bs-msg").textContent = msg;
+        tip.innerHTML = "";
+        const b = document.createElement("button"); b.className = "ghost sm"; b.textContent = "Close"; b.onclick = () => el.remove();
+        tip.append(b);
+      },
+      remove() { clearInterval(creep); clearInterval(tipTimer); el.remove(); },
+    };
+    return api;
+  }
+
+  return { $, toast, api, sse, guardPreview, partialHtml, setPreview, download, deviceSwitcher, buildScreen };
 })();

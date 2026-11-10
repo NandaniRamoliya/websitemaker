@@ -84,3 +84,46 @@ iframe#preview{width:100%;height:100%;border:0;display:block}
 .lbl .find{float:right;font-weight:600;color:var(--pri);text-decoration:none;font-size:11.5px}.lbl .find:hover{text-decoration:underline}
 .hint .find{color:var(--pri);font-weight:600;text-decoration:none}
 .more>summary{cursor:pointer;font-size:12.5px;font-weight:600;color:var(--muted);padding:4px 0}.more-body{padding:8px 0 0}
+
+/* ---------- build screen ---------- */
+.canvas{position:relative}
+.bs{position:absolute;inset:18px;display:grid;place-items:center;z-index:5;background:color-mix(in srgb,var(--bg) 70%,transparent);backdrop-filter:blur(6px);border-radius:12px;transition:opacity .5s}
+.bs-card{position:relative;width:min(560px,92%);border-radius:22px;background:var(--panel);border:1px solid var(--line);box-shadow:0 30px 80px -30px rgba(40,30,120,.45);overflow:hidden}
+.bs-glow{position:absolute;inset:-40% -20% auto;height:260px;background:radial-gradient(closest-side,rgba(124,108,255,.35),transparent),radial-gradient(closest-side at 70% 60%,rgba(6,182,212,.28),transparent);filter:blur(10px);animation:bsFloat 6s ease-in-out infinite alternate;pointer-events:none}
+@keyframes bsFloat{to{transform:translate(30px,20px) scale(1.1)}}
+.bs-skel{position:relative;margin:22px 22px 0;padding:12px;border-radius:14px;border:1px solid var(--line);background:var(--bg);display:grid;gap:8px}
+.bs-skel i{display:block;border-radius:8px;background:linear-gradient(90deg,var(--line) 0%,color-mix(in srgb,var(--pri) 18%,var(--line)) 50%,var(--line) 100%);background-size:200% 100%;animation:bsShimmer 1.4s linear infinite}
+.bs-skel .h{height:12px;width:40%}.bs-skel .hero{height:64px}.bs-skel .row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.bs-skel .row i{height:34px}
+@keyframes bsShimmer{to{background-position:-200% 0}}
+.bs-body{position:relative;padding:18px 26px 22px}
+.bs-kicker{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--pri)}
+.bs-title{font-size:22px;margin:4px 0 14px;line-height:1.2}
+.bs-steps{list-style:none;padding:0;margin:0 0 16px;display:grid;gap:9px}
+.bs-steps li{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:14px;transition:color .3s}
+.bs-steps .dot{width:18px;height:18px;border-radius:50%;border:2px solid var(--line);flex:none;display:grid;place-items:center;font-size:11px;transition:all .3s}
+.bs-steps li.on{color:var(--text);font-weight:600}
+.bs-steps li.on .dot{border-color:var(--pri);border-right-color:transparent;animation:sp .8s linear infinite}
+.bs-steps li.done{color:var(--text)}
+.bs-steps li.done .dot{background:#16a34a;border-color:#16a34a;animation:none}.bs-steps li.done .dot::after{content:"✓";color:#fff;font-weight:800}
+.bs-bar{height:8px;border-radius:8px;background:var(--bg);overflow:hidden}
+.bs-bar i{display:block;height:100%;width:0;border-radius:8px;background:linear-gradient(90deg,var(--pri),#06b6d4,var(--pri));background-size:200% 100%;animation:bsShimmer 1.6s linear infinite;transition:width .6s ease}
+.bs-foot{display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:13px;color:var(--muted);gap:12px}
+.bs-foot b{color:var(--text);font-variant-numeric:tabular-nums}
+.bs-tip{margin:14px 0 0;padding:10px 12px;border-radius:10px;background:var(--soft);font-size:12.5px;color:var(--muted);min-height:20px}
+.bs-mini{display:none}
+/* once the live site starts appearing, shrink to a floating pill */
+.bs.mini{inset:auto 0 30px;background:none;backdrop-filter:none;pointer-events:none}
+.bs.mini .bs-card{display:none}
+.bs.mini .bs-mini{display:flex;align-items:center;gap:10px;padding:10px 16px;border-radius:999px;background:rgba(17,17,30,.9);color:#fff;font-size:13.5px;font-weight:600;box-shadow:0 12px 30px rgba(0,0,0,.35);backdrop-filter:blur(6px)}
+.bs.mini .bs-mini b{color:#a5b4fc;font-variant-numeric:tabular-nums}
+.bs.finished .bs-mini{background:#16a34a}.bs.finished .spin{display:none}
+.bs.out{opacity:0}
+.bs.failed .bs-kicker{color:var(--danger)}.bs.failed .bs-skel{display:none}
+/* busy button: animated gradient instead of a dull disabled state */
+button.building{position:relative;opacity:1!important;cursor:progress;background:linear-gradient(90deg,var(--pri),#7c3aed,#06b6d4,var(--pri));background-size:300% 100%;animation:bsShimmer 2.2s linear infinite;color:#fff}
+.debuglog{margin-top:8px;font-size:12px}.debuglog summary{cursor:pointer;color:var(--muted)}
+.debuglog div{margin-top:6px;font:11.5px ui-monospace,monospace;color:var(--muted);max-height:140px;overflow:auto;background:var(--bg);border-radius:8px;padding:8px}
+/* brand wordmark (no icon) */
+.brandbar strong{font-size:19px;font-weight:800;letter-spacing:-.02em;background:linear-gradient(135deg,var(--pri),#06b6d4);-webkit-background-clip:text;background-clip:text;color:transparent}
+.brandbar small{margin-top:1px}
+.magic .log{margin-top:12px}

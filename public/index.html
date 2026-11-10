@@ -12,7 +12,6 @@
 <div class="app">
   <aside class="panel">
     <div class="brandbar">
-      <div class="mark">📍</div>
       <div><strong>PinPage</strong><small>Maps link in → website out</small></div>
       <div class="bar-actions">
         <a class="sm" href="/leads.html" style="text-decoration:none;background:var(--pri);color:#fff;border-radius:8px;padding:7px 12px;font-weight:600">📋 Leads</a>
@@ -30,6 +29,8 @@
           <button id="btnMagic">⚡ Build website</button>
         </div>
         <div class="hint">Builds everything automatically: content, design, map, WhatsApp. For phone, address & rating use the <a href="/leads.html">Leads page</a> with your sheet.</div>
+        <div class="log" id="log" hidden></div>
+        <details class="debuglog" id="debugBox" hidden><summary>Technical details</summary><div id="debugLog"></div></details>
       </section>
 
       <!-- Smart import -->
@@ -53,7 +54,7 @@
           </div>
           <div class="ai-note" id="aiNote"></div>
         </details>
-        <div class="log" id="log" hidden></div>
+        
       </section>
 
       <div class="meter" id="meter" hidden></div>

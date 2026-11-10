@@ -107,14 +107,23 @@
     ["#pvOpen", "#pvEdit", "#pvDownload"].forEach((s) => ($(s).hidden = true));
     const f = $("#preview"); f.dataset.lead = lead.id;
     let html = "", last = 0, result = null;
-    await sse("/api/auto", { lead, variant }, {
-      log: (e) => { log(e.msg); status[lead.id].msg = "⏳ " + e.msg.replace(/^\S+\s/, "").slice(0, 28); render(); },
-      reset: () => { html = ""; },
-      html: (e) => { html += e.text; if (Date.now() - last > 2500) { last = Date.now(); setPreview(f, SF.partialHtml(html)); } },
-      done: (e) => { result = e; },
-      error: (e) => { throw new Error(e.error); },
-    }, signal);
-    if (!result) throw new Error("Build stopped");
+    $("#debugLog").innerHTML = ""; $("#debugBox").hidden = true;
+    const screen = SF.buildScreen(document.querySelector(".lp-right .canvas"), lead.name, {
+      onProgress: (pct) => { status[lead.id].msg = `⏳ Building… ${pct}%`; const c = document.querySelector(`tr[data-id="${lead.id}"] .st.run`); if (c) c.textContent = status[lead.id].msg; },
+    });
+    try {
+      await sse("/api/auto", { lead, variant }, {
+        log: (e) => { log(e.msg); screen.log(e.msg); },
+        debug: (e) => { const d = $("#debugLog"); $("#debugBox").hidden = false; const x = document.createElement("div"); x.textContent = e.msg; d.append(x); },
+        stage: (e) => screen.stage(e.id),
+        reset: () => { html = ""; },
+        html: (e) => { html += e.text; screen.bytes(html.length, html); if (Date.now() - last > 2500) { last = Date.now(); setPreview(f, SF.partialHtml(html)); } },
+        done: (e) => { result = e; },
+        error: (e) => { throw new Error(e.error); },
+      }, signal);
+      if (!result) throw new Error("Build stopped");
+      screen.done();
+    } catch (e) { screen.fail(e.name === "AbortError" ? "Stopped" : e.message); throw e; }
     sites = await (await fetch("/api/sites")).json();
     status[lead.id] = { state: "ok", msg: result.engine === "ai" ? "✓ AI design" : "✓ Template" };
     await showSite(result.slug, lead.id);
@@ -132,7 +141,7 @@
       catch (e) {
         status[lead.id] = { state: "err", msg: "✗ " + (e.name === "AbortError" ? "Stopped" : e.message).slice(0, 60) };
         log("✗ " + e.message);
-        if (/limit reached/i.test(e.message)) { toast("Gemini free limit reached – stopping. Try again later.", true); break; }
+        if (/limit is used up|limit reached/i.test(e.message)) { toast("Today's free AI limit is used up – stopping here. Try again later.", true); break; }
       }
       done++; setBar(); render();
       if (done < list.length && !running.signal.aborted) await new Promise((r) => setTimeout(r, 4000)); // be gentle with the free tier

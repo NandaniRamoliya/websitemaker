@@ -4,12 +4,19 @@ import { heal, staticFixes } from "../lib/siteDoctor.js";
 import { checkClaims } from "../lib/autobuild.js";
 
 test("external links open in a new tab; empty links go to the top", () => {
-  const h = staticFixes('<body><a href="https://wa.me/91">W</a><a href="https://x.com" target="_self">X</a><a href="#" class="logo">L</a><a href="">E</a><a href="#about">A</a></body>');
+  const h = staticFixes('<body><a href="https://wa.me/91">W</a><a href="https://x.com" target="_self">X</a><a href="#" class="logo">L</a><a href="">E</a><a href="#about">A</a><section id="about"><h2>About</h2></section></body>');
   assert.match(h, /href="https:\/\/wa\.me\/91" target="_blank" rel="noopener"/);
   assert.match(h, /href="https:\/\/x\.com" target="_blank"/);
   assert.equal((h.match(/href="#top" data-sf-top/g) || []).length, 2);
   assert.match(h, /href="#about"/);
   assert.match(h, /id="top"/);
+});
+
+test("menu links to missing sections are pointed at the matching section", () => {
+  const h = staticFixes('<body><nav><a href="#about">About</a><a href="#contact">Contact</a><a href="#faq">FAQ</a></nav><section class="hero"><h1>Hi</h1></section><section><h2>Visit us</h2></section></body>');
+  assert.match(h, /<section id="contact"><h2>Visit us/);          // heading-based match
+  assert.match(h, /href="#top">About/);                           // no about section → top of page
+  assert.match(h, /href="#faq"/);                                 // nothing to match → left for the runtime fallback
 });
 
 test("heal is idempotent and its script parses", () => {
