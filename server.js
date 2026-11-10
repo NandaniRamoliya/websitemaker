@@ -1,3 +1,4 @@
+import "./lib/env.js"; // must be first: loads .env
 import express from "express";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -8,6 +9,7 @@ import { autoBuild, listSites, rememberLeads, polishHtml, cleanHtml, SITES_DIR }
 import { heal } from "./lib/siteDoctor.js";
 import { fetchSheet, parseCsv, leadsFromRows } from "./lib/leads.js";
 import { placesEnabled } from "./lib/places.js";
+import { publishConfigured, publishConfig, publishDemos, publishOwn, removeOwn, publishProductSite, productPage } from "./lib/publish.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -24,7 +26,7 @@ function sse(res) {
   return (event, data) => res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
 }
 
-app.get("/api/status", (_req, res) => res.json({ ai: Boolean(aiProvider()), provider: aiProvider(), places: placesEnabled() }));
+app.get("/api/status", (_req, res) => res.json({ ai: Boolean(aiProvider()), provider: aiProvider(), places: placesEnabled(), publish: publishConfigured() }));
 
 // ---- Automatic builder & leads ----
 app.post("/api/auto", async (req, res) => {
@@ -48,6 +50,28 @@ app.post("/api/leads/load", async (req, res) => {
 app.post("/api/heal", (req, res) => res.json({ html: heal(String(req.body.html || ""), req.body.data || {}) }));
 
 app.get("/api/sites", async (_req, res) => res.json(await listSites()));
+
+// ---- Publishing to the user's free Cloudflare Pages account ----
+app.get("/api/publish/status", (_req, res) => {
+  const c = publishConfig();
+  res.json({ configured: publishConfigured(), demosProject: c.demosProject, siteProject: c.siteProject, hasWhatsapp: Boolean(c.whatsapp), hasWaitlist: Boolean(c.waitlist) });
+});
+let publishing = Promise.resolve(); // one publish at a time (each deploy is a full snapshot)
+function publishRoute(handler) {
+  return async (req, res) => {
+    const send = sse(res);
+    const job = publishing.then(() => handler(req.body || {}, (msg) => send("log", { msg })));
+    publishing = job.catch(() => {});
+    try { send("done", await job); } catch (e) { send("error", { error: errMsg(e) }); }
+    res.end();
+  };
+}
+app.post("/api/publish", publishRoute((b, say) => publishDemos({ add: b.slugs || [] }, say)));
+app.post("/api/publish/remove", publishRoute((b, say) => publishDemos({ remove: b.slugs || [] }, say)));
+app.post("/api/publish/own", publishRoute((b, say) => publishOwn(b.slug, say)));
+app.post("/api/publish/own/remove", publishRoute((b, say) => removeOwn(b.slug, say).then(() => ({}))));
+app.post("/api/publish/site", publishRoute((_b, say) => publishProductSite(say)));
+app.get("/product-preview", async (_req, res) => { try { res.type("html").send(await productPage()); } catch (e) { res.status(500).send(String(e)); } });
 
 app.post("/api/import-url", async (req, res) => {
   try { res.json(await scrapeUrl(String(req.body.url || "").trim())); }

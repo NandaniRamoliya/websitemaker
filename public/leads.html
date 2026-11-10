@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SiteForge – Leads → Demo websites</title>
+<title>PinPage – Leads → Demo websites</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
@@ -24,7 +24,15 @@
   .nm{font-weight:600}.sub{color:var(--muted);font-size:12px}
   .chip{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;background:var(--bg);border:1px solid var(--line);margin-right:4px}
   .st{font-size:12px;font-weight:600;white-space:nowrap}.st.ok{color:#16a34a}.st.warn{color:#d97706;cursor:help}.st.err{color:var(--danger)}.st.run{color:var(--pri)}
-  .acts{display:flex;gap:5px;flex-wrap:wrap}.acts a,.acts button{padding:5px 9px;font-size:12px;border-radius:7px;text-decoration:none}
+  .acts{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+  .link{display:block;font-size:11.5px;margin-top:3px;max-width:230px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.link a{color:var(--pri)}
+  .pubnote{font-size:12.5px;background:#fff7ed;color:#9a3412;border:1px solid #fed7aa;border-radius:9px;padding:8px 10px}
+  .msgbox summary{cursor:pointer;font-weight:600;font-size:13px}.msgbox textarea{margin:8px 0 4px;font-size:13px}
+  .more-acts{position:relative}.more-acts summary{list-style:none;cursor:pointer;padding:5px 9px;border:1px solid var(--line);border-radius:7px;font-size:12px}
+  .more-acts summary::-webkit-details-marker{display:none}
+  .more-acts .menu{position:absolute;right:0;top:calc(100% + 4px);z-index:5;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.15);padding:6px;display:grid;gap:4px;min-width:200px}
+  .more-acts .menu button{width:100%;text-align:left;background:transparent;color:var(--text);padding:8px 10px}.more-acts .menu button:hover{background:var(--soft)}
+  .wa{background:#25d366}.wa:hover{background:#1ebe5a}.acts a,.acts button{padding:5px 9px;font-size:12px;border-radius:7px;text-decoration:none}
   .acts a{border:1px solid var(--line);color:var(--text)}
   .bulk{display:flex;gap:8px;align-items:center;padding:10px 16px;border-top:1px solid var(--line);background:var(--panel)}
   .bar{flex:1;height:8px;background:var(--bg);border-radius:8px;overflow:hidden}.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--pri),#06b6d4);transition:width .4s}
@@ -39,9 +47,9 @@
 <div class="lp">
   <section class="lp-left">
     <div class="brandbar">
-      <div class="mark">◆</div>
-      <div><strong>Leads → Demo websites</strong><small>Load your sheet, build a unique site for every lead</small></div>
-      <div class="bar-actions"><a class="ghost sm" href="/" style="text-decoration:none;display:inline-block">Single site editor</a></div>
+      <div class="mark">📍</div>
+      <div><strong>PinPage · Leads → Demo websites</strong><small>Load your sheet, build & share a unique site for every lead</small></div>
+      <div class="bar-actions"><button class="ghost sm" id="btnSite" title="Publish the PinPage product / waitlist page">🚀 PinPage site</button><a class="ghost sm" href="/" style="text-decoration:none;display:inline-block">Editor</a></div>
     </div>
     <div class="lp-top">
       <div class="row">
@@ -55,6 +63,11 @@
         <input type="search" id="fSearch" placeholder="Search…">
         <span class="sub" id="count"></span>
       </div>
+      <div class="pubnote" id="pubNote" hidden>🌐 Publishing is off. Add <code>CLOUDFLARE_API_TOKEN</code> and <code>CLOUDFLARE_ACCOUNT_ID</code> to the <code>.env</code> file and restart to get shareable links.</div>
+      <details class="msgbox"><summary>💬 WhatsApp message template</summary>
+        <textarea id="msgTpl" rows="7"></textarea>
+        <div class="sub">Placeholders: <code>{name}</code> <code>{link}</code> <code>{rating}</code> <code>{reviews}</code> <code>{area}</code> · <a href="#" id="msgReset">reset to default</a></div>
+      </details>
     </div>
     <div class="tbl-wrap">
       <table>
@@ -65,6 +78,7 @@
     <div class="bulk">
       <button id="btnBuildSel" disabled>⚡ Build selected</button>
       <button class="ghost" id="btnStop" hidden>Stop</button>
+      <button class="ghost" id="btnPubSel" disabled title="Publish the selected built demos to your free Cloudflare Pages">🌐 Publish selected</button>
       <div class="bar"><i id="barFill"></i></div>
       <span class="sub" id="barText"></span>
       <button class="ghost sm" id="btnExport" title="Download the leads with their demo links">Export CSV</button>

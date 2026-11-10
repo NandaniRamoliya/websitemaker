@@ -1,4 +1,4 @@
-# SiteForge: AI website maker
+# PinPage: Google Maps link → website
 
 Turn a Google Maps link, or a whole sheet of leads, into complete, unique, AI-designed websites you can show to businesses as demos. You can also fill in brand details by hand and download any site as a single HTML file.
 
@@ -92,6 +92,18 @@ If you hit the free limit you'll see a "limit reached" message: wait a minute, o
 - **Download website**: a single self-contained `.html` file you can upload to Netlify, Vercel, GitHub Pages, cPanel or any other host.
 - **Save/Load project**: saves and loads all your inputs as JSON. Work also autosaves in the browser.
 
+## Share demo links (free, Cloudflare Pages)
+
+1. Create a free Cloudflare account and an API token: **My Profile → API Tokens → Create Token → Start from scratch → Account policy → Cloudflare Pages: Edit**.
+2. Copy `.env.example` to `.env` and fill in `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `PINPAGE_WHATSAPP` (your number, used for “Remove this demo” and “Get a free demo”) and `PINPAGE_WAITLIST_URL` (your Google Form). `.env` is never uploaded to GitHub.
+3. Restart the app. On the Leads page each built demo now has:
+   - **🌐 Publish**: live at `https://pinpage-demos.pages.dev/<business>/`. **Publish selected** does many at once.
+   - **💬 Send**: opens WhatsApp to the lead with your message template and the link (edit the template under “💬 WhatsApp message template”). **🔗** copies the link.
+   - **⋯ → Give own address**: `https://<business>.pages.dev/` for hot leads. **⋯ → Unpublish** takes a demo offline.
+   - **Export CSV**: includes the live link and a ready WhatsApp link per lead.
+4. Published demos are hidden from search engines and carry a small “Free demo website prepared for …” ribbon with a **Remove** link.
+5. **🚀 PinPage site** (top of the Leads page) publishes the product/waitlist page in `product-site/` to `https://pinpage.pages.dev/`. Preview it locally at `/product-preview`.
+
 ## Quality checks
 
 ```bash
@@ -121,6 +133,9 @@ lib/leads.js         Google Sheet / CSV leads → website facts
 lib/categories.js    per-business-type photos, services and design directions
 lib/autobuild.js     one-click pipeline: facts → AI copy → AI design → quality fixes → saved site
 lib/places.js        optional Google Places API (New) enrichment
+lib/publish.js       publish demos / own addresses / product site to Cloudflare Pages
+lib/env.js           loads settings from .env
+product-site/        the PinPage landing page (waitlist)
 public/leads.html    leads dashboard (bulk demo builder)
 public/shared.js     shared UI helpers (incl. the preview link guard)
 public/generator.js  template engine (brand JSON -> website HTML)
