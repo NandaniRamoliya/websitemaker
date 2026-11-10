@@ -72,6 +72,7 @@ app.post("/api/publish/remove", publishRoute((b, say) => publishDemos({ remove: 
 app.post("/api/publish/own", publishRoute((b, say) => publishOwn(b.slug, say)));
 app.post("/api/publish/own/remove", publishRoute((b, say) => removeOwn(b.slug, say).then(() => ({}))));
 app.post("/api/publish/site", publishRoute((_b, say) => publishProductSite(say)));
+app.get("/og.png", (_req, res) => res.sendFile(path.join(here, "product-site", "og.png")));
 app.get("/product-preview", async (_req, res) => { try { res.type("html").send(await productPage()); } catch (e) { res.status(500).send(String(e)); } });
 
 app.post("/api/import-url", async (req, res) => {

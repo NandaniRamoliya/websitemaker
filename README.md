@@ -104,6 +104,17 @@ If you hit the free limit you'll see a "limit reached" message: wait a minute, o
 4. Published demos are hidden from search engines and carry a small “Free demo website prepared for …” ribbon with a **Remove** link.
 5. **🚀 PinPage site** (top of the Leads page) publishes the product/waitlist page in `product-site/` to `https://pinpage.pages.dev/`. Preview it locally at `/product-preview`.
 
+## Getting found on Google (PinPage site)
+
+The product site is published with a search-friendly title and description, a canonical address, `robots.txt`, `sitemap.xml`, a share image (`product-site/og.png`) and schema.org data (Organization, WebSite, SoftwareApplication, FAQ). Demo sites stay hidden from search on purpose.
+
+1. Publish with **🚀 PinPage site**.
+2. Open [Google Search Console](https://search.google.com/search-console) → **Add property** → **URL prefix** → paste your live address → choose **HTML tag** → copy only the `content="…"` value.
+3. Put it in `.env` as `PINPAGE_GOOGLE_VERIFY=that-value`, restart, publish again, then click **Verify** in Search Console.
+4. In Search Console: **Sitemaps** → submit `sitemap.xml`, then **URL inspection** → your address → **Request indexing**.
+
+If you later buy a domain, connect it to the `pinpage` project in Cloudflare and set `PINPAGE_SITE_URL=https://yourdomain/`.
+
 ## Quality checks
 
 ```bash

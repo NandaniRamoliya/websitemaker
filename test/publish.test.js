@@ -9,7 +9,7 @@ const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "pinpage-test-"));
 process.env.SITES_DIR = tmp;
 process.env.PINPAGE_WHATSAPP = "+91 98765 43210";
 process.env.PINPAGE_WAITLIST_URL = "https://forms.gle/example";
-const { demoVersion, packageDemos, productPage, publishConfigured, wranglerBin } = await import("../lib/publish.js");
+const { demoVersion, packageDemos, productPage, packageProductSite, publishConfigured, wranglerBin } = await import("../lib/publish.js");
 import { execFileSync } from "node:child_process";
 
 test("demo copy is hidden from search and carries a ribbon with a Remove link", () => {
@@ -54,4 +54,24 @@ test("the Cloudflare CLI can be found and started", () => {
   assert.ok(fs.existsSync(bin), bin);
   const out = execFileSync(process.execPath, [bin, "--version"], { encoding: "utf8", env: { ...process.env, WRANGLER_SEND_METRICS: "false" } });
   assert.match(out, /\d+\.\d+\.\d+/);
+});
+
+test("product site is packaged for search engines", async () => {
+  const url = "https://pinpage-test.pages.dev/";
+  const dir = await packageProductSite(url);
+  const h = fs.readFileSync(path.join(dir, "index.html"), "utf8");
+  assert.doesNotMatch(h, /\{\{[A-Z_]+\}\}/);
+  assert.match(h, /<link rel="canonical" href="https:\/\/pinpage-test\.pages\.dev\/">/);
+  assert.match(h, /<meta name="robots" content="index, follow/);
+  assert.doesNotMatch(h, /noindex/);
+  const ld = JSON.parse(h.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
+  const types = ld["@graph"].map((n) => n["@type"]);
+  assert.deepEqual(types, ["Organization", "WebSite", "SoftwareApplication", "FAQPage"]);
+  const faq = ld["@graph"][3].mainEntity;
+  assert.equal(faq.length, (h.match(/<details><summary>/g) || []).length);
+  assert.ok(faq.every((q) => h.includes(q.name.replace(/&/g, "&amp;")) || h.includes(q.name)));
+  assert.match(fs.readFileSync(path.join(dir, "robots.txt"), "utf8"), /Allow: \/\n\nSitemap: https:\/\/pinpage-test\.pages\.dev\/sitemap\.xml/);
+  assert.match(fs.readFileSync(path.join(dir, "sitemap.xml"), "utf8"), /<loc>https:\/\/pinpage-test\.pages\.dev\/<\/loc>/);
+  assert.ok(fs.statSync(path.join(dir, "og.png")).size > 5000, "share image");
+  fs.rmSync(dir, { recursive: true, force: true });
 });
