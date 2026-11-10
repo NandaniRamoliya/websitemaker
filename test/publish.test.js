@@ -38,6 +38,10 @@ test("product page gets the waitlist + WhatsApp links filled in", async () => {
   assert.doesNotMatch(h, /\{\{[A-Z_]+\}\}/);
   assert.match(h, /href="https:\/\/forms\.gle\/example"/);
   assert.match(h, /wa\.me\/919876543210/);
+  assert.match(h, /by Indrix/);
+  assert.match(h, /Hi, I&#39;m the founder of Indrix/);
+  assert.doesNotMatch(h, /📍<\/i>/, "no icon before the name");
+  assert.match(h, /id="themeBtn"/);
 });
 
 test("publishing stays off without a Cloudflare token", () => {

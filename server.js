@@ -110,7 +110,7 @@ app.post("/api/ai/design", async (req, res) => {
 
 const port = Number(process.env.PORT) || 3000;
 app.listen(port, () => {
-  console.log(`SiteForge running → http://localhost:${port}`);
+  console.log(`PinPage by ${publishConfig().company} running → http://localhost:${port}`);
   const p = aiProvider();
   console.log(p ? `AI provider: ${p}` : "AI is off – get a FREE key at https://aistudio.google.com/apikey and start with GEMINI_API_KEY=your-key");
   console.log(envInfo.found ? `.env loaded (${envInfo.keys.length} settings: ${envInfo.keys.join(", ")})` : `⚠ ${envInfo.hint}`);
