@@ -1,4 +1,4 @@
-import "./lib/env.js"; // must be first: loads .env
+import { envInfo } from "./lib/env.js"; // must be first: loads .env
 import express from "express";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -60,9 +60,10 @@ let publishing = Promise.resolve(); // one publish at a time (each deploy is a f
 function publishRoute(handler) {
   return async (req, res) => {
     const send = sse(res);
-    const job = publishing.then(() => handler(req.body || {}, (msg) => send("log", { msg })));
+    const job = publishing.then(() => handler(req.body || {}, (msg) => { console.log("[publish]", msg); send("log", { msg }); }));
     publishing = job.catch(() => {});
-    try { send("done", await job); } catch (e) { send("error", { error: errMsg(e) }); }
+    try { const r = await job; if (r?.url) console.log("[publish] ✓ Live:", r.url); send("done", r); }
+    catch (e) { console.log("[publish] ✗", errMsg(e)); send("error", { error: errMsg(e) }); }
     res.end();
   };
 }
@@ -112,4 +113,8 @@ app.listen(port, () => {
   console.log(`SiteForge running → http://localhost:${port}`);
   const p = aiProvider();
   console.log(p ? `AI provider: ${p}` : "AI is off – get a FREE key at https://aistudio.google.com/apikey and start with GEMINI_API_KEY=your-key");
+  console.log(envInfo.found ? `.env loaded (${envInfo.keys.length} settings: ${envInfo.keys.join(", ")})` : `⚠ ${envInfo.hint}`);
+  const c = publishConfig();
+  if (publishConfigured()) console.log(`Publishing: ON → demos on “${c.demosProject}”, PinPage site on “${c.siteProject}” (Cloudflare Pages)`);
+  else console.log(`Publishing: OFF – missing ${[!c.token && "CLOUDFLARE_API_TOKEN", !c.account && "CLOUDFLARE_ACCOUNT_ID"].filter(Boolean).join(" and ")} in .env`);
 });
